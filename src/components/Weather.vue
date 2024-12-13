@@ -10,7 +10,7 @@ defineProps({
     <div style="display: flex; justify-content: space-between;margin: 10px 20px"
     v-if="data.success">
       <div style="font-size: 45px;" >
-          <i :class="`qi-${data.now.icon}-fill`"></i>
+            <i :class="`qi-${data.now.icon}-fill`"></i>
       </div>
       <div style="font-weight: bold;text-align: center">
           <div style="font-size: 25px">{{data.now.temp}}</div>
@@ -26,7 +26,7 @@ defineProps({
       <div v-for="item in data.hourly">
           <div style="font-size: 13px;margin-top: 5px">{{new Date(item.fxTime).getHours()}}时</div>
         <div style="font-size: 23px;margin-top: 5px">
-          <i :class="`qi-${item.icon}-fill`"></i>
+          <i :class="`qi-${item.icon}`"></i>
         </div>
           <div style="font-size: 12px;margin-top: 5px">
             {{item.temp}}℃

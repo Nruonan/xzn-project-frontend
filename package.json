@@ -12,6 +12,7 @@
     "@ant-design/icons-vue": "^7.0.1",
     "@element-plus/icons-vue": "^2.3.1",
     "@vueup/vue-quill": "^1.2.0",
+    "@vueuse/core": "^12.0.0",
     "ant-design-vue": "^4.2.6",
     "axios": "^1.7.8",
     "element-plus": "^2.9.0",
@@ -19,6 +20,7 @@
     "quill-delta-to-html": "^0.12.1",
     "quill-image-resize-vue": "^1.0.4",
     "quill-image-super-solution-module": "^2.0.1",
+    "qweather-icons": "^1.6.0",
     "vue": "^3.5.12",
     "vue-router": "^4.4.5"
   },

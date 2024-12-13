@@ -44,6 +44,10 @@ let common = reactive({
     ip : 0,
   }
 })
+const count = reactive({
+  uv: 0,
+  dau: 0
+})
 const collects =ref(false)
 const editor = ref(false)
 get('/api/common',data=>{
@@ -104,10 +108,8 @@ navigator.geolocation.getCurrentPosition(position =>{
     })
 
 },error =>{
-  console.log(error)
   ElMessage.warning('位置信息获取超时，请检查网络设置')
   get(`/api/forum/weather?longitude=113.3646&latitude=22.9386`,data =>{
-    console.log(data)
     Object.assign(weather, data)
     weather.success = true
   })
@@ -122,6 +124,11 @@ function pushTopic(item){
     router.push(`/index/topic-detail/${item.id}`)
   }
 }
+get('/api/data/count',data=>{
+  console.log(data)
+  count.uv = data.uv
+  count.dau = data.dau
+})
 </script>
 
 <template>
@@ -232,6 +239,14 @@ function pushTopic(item){
           <div class="info-text">
             <div>当前浏览器</div>
             <div>{{ common.data.browser }}</div>
+          </div>
+          <div class="info-text">
+            <div>当日访问人数(ip)</div>
+            <div>{{count.uv}}</div>
+          </div>
+          <div class="info-text">
+            <div>当日活跃人数</div>
+            <div>{{count.dau}}</div>
           </div>
         </light-card>
         <div style="font-size: 14px; margin-top: 10px; color: grey">

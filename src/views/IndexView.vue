@@ -116,19 +116,20 @@
                     <el-menu-item>
                       <template #title>
                         <el-icon><Notification /></el-icon>
-                        校园活动
+                        校园活动(未开发)
                       </template>
                     </el-menu-item>
                     <el-menu-item>
                       <template #title>
                         <el-icon><Bell /></el-icon>
-                        失物招领
+                        失物招领(未开发)
                       </template>
                     </el-menu-item>
-                    <el-menu-item index="/index/relax">
+<!--                    <el-menu-item index="/index/relax">-->
+                    <el-menu-item>
                       <template #title>
                         <el-icon><ToiletPaper /></el-icon>
-                        放松一刻
+                        放松一刻(未开发)
                         <el-tag style="margin-left:10px" size="small">合作机构</el-tag>
                       </template>
                     </el-menu-item>
@@ -141,31 +142,31 @@
                     <el-menu-item>
                       <template #title>
                         <el-icon><Document/></el-icon>
-                        成绩查询
+                        成绩查询(未开发)
                       </template>
                     </el-menu-item>
                     <el-menu-item>
                       <template #title>
                         <el-icon><Files/></el-icon>
-                        班级课程表
+                        班级课程表(未开发)
                       </template>
                     </el-menu-item>
                     <el-menu-item>
                       <template #title>
                         <el-icon><Monitor/></el-icon>
-                        教务通知
+                        教务通知(未开发)
                       </template>
                     </el-menu-item>
                     <el-menu-item>
                       <template #title>
                         <el-icon><Collection/></el-icon>
-                        在线图书馆
+                        在线图书馆(未开发)
                       </template>
                     </el-menu-item>
                     <el-menu-item>
                       <template #title>
                         <el-icon><DataLine/></el-icon>
-                        预约教室
+                        预约教室(未开发)
                       </template>
                     </el-menu-item>
                   </el-sub-menu>
