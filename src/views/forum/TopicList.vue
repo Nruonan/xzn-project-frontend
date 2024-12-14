@@ -17,7 +17,6 @@ import {get} from "../../net/index.js";
 import {ElMessage} from "element-plus";
 import TopicEditor from "../../components/TopicEditor.vue";
 import {useStore} from '../../store/index.js'
-import axios from "axios";
 import router from "../../router/index.js";
 import TopicDetail from "./TopicDetail.vue";
 import TopicTag from "../../components/TopicTag.vue";

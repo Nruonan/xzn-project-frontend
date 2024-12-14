@@ -7,6 +7,8 @@ import {Clock, Female, Male} from "@element-plus/icons-vue";
 import TopicTag from "../../components/TopicTag.vue";
 import LightCard from "../../components/LightCard.vue";
 import router from "../../router/index.js";
+import FansList from "@/components/FansList.vue";
+import FollowList from "@/components/FollowList.vue";
 
 const store = useStore()
 const route = useRoute()
@@ -74,6 +76,15 @@ function isFollow(){
     return "关注" // 取消关注
   }
 }
+const fan = reactive({
+  show: false,
+  data: []
+})
+const fol = reactive({
+  show: false,
+  data: []
+})
+
 </script>
 
 <template>
@@ -88,10 +99,14 @@ function isFollow(){
               {{user.username}}
             </span>
             <span style="margin-left: 30px">
-              粉丝：{{fans}}
+              <el-button type="primary" v-if="store.user.id === user.id" @click="fan.show = true">粉丝</el-button>
+              <span v-else>粉丝：</span>
+              <span style="margin-left: 5px">{{fans}}</span>
             </span>
             <span style="margin-left: 30px">
-              关注：{{follows}}
+               <el-button type="primary" v-if="store.user.id === user.id" @click="fol.show = true">关注</el-button>
+              <span v-else>关注：</span>
+              <span style="margin-left: 5px">{{follows}}</span>
             </span>
           </div>
           <div style="margin-top: 8px;font-size: 15px;color: grey">
@@ -120,6 +135,12 @@ function isFollow(){
       </div>
       <hr>
       <el-scrollbar height="650px">
+        <div v-if="store.user.id !== user.id">
+          <div style="margin: 10px 0;">
+
+          </div>
+        </div>
+        <hr>
         <div v-for="item in user.topics">
           <el-card shadow="hover" style="margin-top: 15px; display: flex; flex-direction: column; position: relative; cursor: pointer" @click="router.push(`/index/topic-detail/${item.id}`)">
             <div style="display: flex; flex: 1;">
@@ -136,6 +157,12 @@ function isFollow(){
           </el-card>
         </div>
       </el-scrollbar>
+    <el-drawer v-model="fan.show" title="粉丝列表">
+      <fans-list @skip="fan.show = false;"/>
+    </el-drawer>
+    <el-drawer v-model="fol.show" title="关注列表">
+      <follow-list @skip="fol.show = false;"/>
+    </el-drawer>
   </el-card>
 </template>
 
