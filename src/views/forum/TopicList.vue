@@ -37,6 +37,7 @@ const topics = reactive({
   end: false,
   top: []
 })
+const hotTopics = ref(0)
 let common = reactive({
   data:{
     browser: '',
@@ -54,6 +55,9 @@ get('/api/common',data=>{
 })
 get('/api/forum/types',data=>{
   store.forum.types =data
+})
+get('/api/forum/hot-topic',data=>{
+  hotTopics.value = data
 })
 watch(()=>topics.type,()=> resetList(),{immediate:true})
 const today = computed(()=>{
@@ -211,13 +215,18 @@ get('/api/data/count',data=>{
         <light-card style="margin-top: 10px">
           <div style="font-weight: bold;" >
             <el-icon><CollectionTag/></el-icon>
-            论坛公告
+            论坛热帖
           </div>
           <el-divider style="margin: 10px 0"/>
-          <div style="font-size: 14px;margin-top: 10px;color: grey" >
-            2024年《粤港澳大湾区发展规划纲要》迎来发布5周年，港澳进一步融入国家发展大局。5年来，大湾区科创产业加速布局、软硬联通不断拓展、协同融合持续深化，
-            作为中国开放程度最高、经济活力最强的区域之一，粤港澳大湾区全面开放新格局正在形成。
-          </div>
+          <ol>
+            <li v-for="(item, index) in hotTopics" :key="index" style="font-size: 14px;margin-top: 10px;color: grey">
+              <div>
+                <topic-tag :type="item.type"></topic-tag>
+                <el-link style="margin-left: 5px" @click="router.push(`/index/topic-detail/${item.id}`)">
+                  {{ item.title.length > 10 ? item.title.toString().substring(0,10) + '...' : item.title }}</el-link>
+              </div>
+            </li>
+          </ol>
         </light-card>
         <light-card style="margin-top: 10px">
           <div style="font-weight: bold">

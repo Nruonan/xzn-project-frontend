@@ -23,10 +23,12 @@ const emits = defineEmits(['skip'])
 </script>
 
 <template>
-  <div>
+  <div style="display:flex;">
     <div v-for="(item,index) in fans.data" :key="index">
-      <el-avatar :size="30" :src="store.avatarUserUrl(item.avatar)" @click="openUserDetail(item.id);  emits('skip')" style="cursor: pointer"></el-avatar>
-      <div>{{item.username}}</div>
+      <div flex="1" style="margin-right: 10px">
+        <el-avatar :size="30" :src="store.avatarUserUrl(item.avatar)" @click="openUserDetail(item.id);  emits('skip')" style="cursor: pointer"></el-avatar>
+        <div>{{item.username}}</div>
+      </div>
     </div>
   </div>
 </template>

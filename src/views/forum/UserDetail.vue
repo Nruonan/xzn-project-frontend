@@ -58,10 +58,12 @@ get(`/follow/follows?id=${userId}`,data =>{
   follows.value = data
 })
 function findTogether(){
-  if(store.user.id !== user.id){
+  if(store.user.id.toString() !== userId.toString()){
     get(`/follow/together?id=${userId}`,data =>{
       together.value = data
     })
+  }else{
+    together.length = 0
   }
 }
 findTogether()
@@ -92,11 +94,18 @@ const fol = reactive({
   show: false,
   data: []
 })
-
+function openUserDetail(id) {
+  window.open(`/index/user-detail/${id}`, '_blank');
+}
 </script>
 
 <template>
   <el-card class="detail-main"   shadow = "never" v-loading="loading">
+      <div style="margin-bottom: 5px" v-if="store.user.id.toString() !== userId.toString()">
+        <el-button type="info" size="small" @click="router.push('/index')">
+          返回
+        </el-button>
+      </div>
       <div style="display: flex;">
         <div style="flex: 1;">
           <el-avatar fit="fill" shape="square" :size="120" :src="store.avatarUserUrl(user.avatar)"/>
@@ -140,22 +149,26 @@ const fol = reactive({
             {{isFollow()}}
           </el-button>
         </div>
-
       </div>
       <hr>
       <el-scrollbar height="650px">
-        <div v-if="store.user.id !== user.id && together.length > 0">
-          <div style="margin: 10px 0;">
+        <div v-if="store.user.id.toString() !== user.id.toString()&& together.length > 0">
+          <div>
             <b>共同关注</b>
-            <div v-for="item in together" style="margin-top: 5px">
-              <el-avatar :src=store.avatarUserUrl(item.avatar) size="default"></el-avatar>
-              <div style="margin-left: 5px; color: grey; font-size: 13px">
-                {{item.username}}
+            <div style="display: flex">
+              <div v-for="item in together.slice(0,10)" style="margin: 5px;">
+                <div style="flex: 1">
+                  <el-avatar :src=store.avatarUserUrl(item.avatar) size="default" @click="openUserDetail(item.id)" style="cursor: pointer"></el-avatar>
+                  <div style="margin-left: 5px; color: grey; font-size: 13px">
+                    {{item.username}}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          <hr>
         </div>
-        <hr>
+
         <div v-for="item in user.topics">
           <el-card shadow="hover" style="margin-top: 15px; display: flex; flex-direction: column; position: relative; cursor: pointer" @click="router.push(`/index/topic-detail/${item.id}`)">
             <div style="display: flex; flex: 1;">

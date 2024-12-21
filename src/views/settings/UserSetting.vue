@@ -78,7 +78,7 @@
                 </div>
             </Card>
             <card style="margin-top: 10px;font-size: 14px">
-                    <div>账号注册时间: {{ registerTime }}</div>
+                    <div>账号注册时间: {{ new Date(store.user.registerTime).toLocaleString() }}</div>
                     <div style="color: grey">欢迎加入我们的学习论坛！</div>
                 </card>
         </div>

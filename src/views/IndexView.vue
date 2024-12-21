@@ -130,7 +130,7 @@
                       <template #title>
                         <el-icon><ToiletPaper /></el-icon>
                         放松一刻(未开发)
-                        <el-tag style="margin-left:10px" size="small">合作机构</el-tag>
+<!--                        <el-tag style="margin-left:10px" size="small">合作机构</el-tag>-->
                       </template>
                     </el-menu-item>
                   </el-sub-menu>
