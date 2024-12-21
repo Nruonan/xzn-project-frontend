@@ -15,6 +15,7 @@ const route = useRoute()
 const follow = ref(-1)
 const fans = ref(0)
 const follows = ref(0)
+const together = ref(0)
 const loading = ref(true)
 // 当前页面用户id
 const userId = route.params.id;
@@ -56,7 +57,14 @@ get(`/follow/fans?id=${userId}`,data =>{
 get(`/follow/follows?id=${userId}`,data =>{
   follows.value = data
 })
-
+function findTogether(){
+  if(store.user.id !== user.id){
+    get(`/follow/together?id=${userId}`,data =>{
+      together.value = data
+    })
+  }
+}
+findTogether()
 function Follow(id){
   get(`follow?id=${id}`,()=>{
     if (follow.value === 0) {
@@ -128,16 +136,23 @@ const fol = reactive({
           </div>
         </div>
         <div style="flex: 0">
-          <el-button type="primary"  @click=Follow(user.id) v-if="user.id !== store.user.id">
+          <el-button type="primary"  @click="Follow(user.id)" v-if="user.id !== store.user.id">
             {{isFollow()}}
           </el-button>
         </div>
+
       </div>
       <hr>
       <el-scrollbar height="650px">
-        <div v-if="store.user.id !== user.id">
+        <div v-if="store.user.id !== user.id && together.length > 0">
           <div style="margin: 10px 0;">
-
+            <b>共同关注</b>
+            <div v-for="item in together" style="margin-top: 5px">
+              <el-avatar :src=store.avatarUserUrl(item.avatar) size="default"></el-avatar>
+              <div style="margin-left: 5px; color: grey; font-size: 13px">
+                {{item.username}}
+              </div>
+            </div>
           </div>
         </div>
         <hr>

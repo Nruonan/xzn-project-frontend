@@ -118,7 +118,7 @@ navigator.geolocation.getCurrentPosition(position =>{
 })
 function pushTopic(item){
   if(topics.type === 6){
-    router.push(`/index/topic-detail/${item.tid}`)
+    router.push(`/index/topic-detail/${item.id}`)
   }else{
     router.push(`/index/topic-detail/${item.id}`)
   }
