@@ -40,9 +40,9 @@
 <script setup>
 import Card from "../../components/Card.vue";
 import { Setting,Lock} from "@element-plus/icons-vue";
-import {reactive, ref} from "vue";
-import {get, post} from "../../net/index.js";
+import {onMounted, reactive, ref} from "vue";
 import {ElMessage} from "element-plus";
+import {apiUserChangePassword, apiUserPrivacy, apiUserPrivacySave} from "@/net/api/user.js";
 
 const formRef = ref('');
 
@@ -79,10 +79,10 @@ const onValidate = (prop, isValid) => valid.value = isValid
 function resetPassword(){
   formRef.value.validate(valid =>{
     if(valid){
-        post('/api/user/change-password',form,()=>{
-          ElMessage.success('修改密码成功！')
-          formRef.value.resetFields();
-        })
+      apiUserChangePassword(form, () => {
+        ElMessage.success('密码修改成功')
+        formRef.value.resetFields();
+      })
     }
   })
 }
@@ -95,25 +95,18 @@ const privacy = reactive({
   gender: false
 })
 
-get('/api/user/privacy',data=>{
-    privacy.email = data.email;
-    privacy.gender = data.gender;
-    privacy.wx = data.wx;
-    privacy.qq = data.qq;
-    privacy.phone = data.phone;
-    saving.value = false
-})
-
 function savePrivacy(type, status){
-    saving.value = true
-    post('/api/user/save-privacy',{
-      type:type,
-      status: status
-    },()=>{
-      ElMessage.success('隐私设置修改成功！')
-      saving.value = false
-    })
+  apiUserPrivacySave({
+    type:type,
+    status: status
+  },saving)
 }
+onMounted(() =>{
+  apiUserPrivacy(data => {
+    Object.assign(privacy,data)
+    saving.value = false
+  })
+})
 </script>
 <style  scoped>
 .checkbox-list{

@@ -3,7 +3,7 @@ import {reactive, ref,computed} from "vue";
 import {LockOutlined, MailOutlined, SafetyCertificateOutlined} from "@ant-design/icons-vue";
 import {useRouter} from "vue-router";
 import {ElMessage} from "element-plus";
-import {get, post} from "../../net/index.js";
+import {apiAuthAskCode, apiAuthResetConfirm, apiAuthResetPassword} from "@/net/api/user.js";
 
 const router = useRouter()
 const coldTime = ref(0)
@@ -45,14 +45,7 @@ const rules_B ={
 }
 function  askCode(){
   if(isEmailValid){
-    coldTime.value=60
-    get(`/api/auth/ask-code?email=${form.email}&type=reset`,() =>{
-      ElMessage.success('验证码已发送到邮箱，请注意查收')
-      setInterval (() => coldTime.value--,1000)
-    },(message) => {
-      ElMessage.warning(message)
-      coldTime.value = 0
-    })
+    apiAuthAskCode(form.email,coldTime,'reset')
   }else{
     ElMessage.warning('请输入正确的电子邮件！')
     coldTime.value = 0
@@ -62,10 +55,10 @@ const isEmailValid = computed(() =>/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{
 const resetConfirm = function (){
   formRef.value.validate(valid =>{
     if(valid){
-      post(`/api/auth/reset-confirm`,{
-        email: form.email,
-        code: form.code
-      },()=>active.value++)
+      apiAuthResetConfirm({
+        email:form.email,
+        code:form.code
+      }, active)
     }
   })
 }
@@ -73,10 +66,7 @@ const resetConfirm = function (){
 const resetPassword = function (){
   formRef.value.validate(valid =>{
     if(valid){
-      post('/api/auth/reset-password',{...form},()=>{
-        ElMessage.success('密码重置成功，欢迎回来')
-        router.push('/')
-      })
+      apiAuthResetPassword({...form})
     }
   })
 }

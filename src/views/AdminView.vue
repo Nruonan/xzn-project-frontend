@@ -37,11 +37,6 @@ const adminMenu = [
   }
 ]
 
-// get('/api/user/info',(data)=>{
-//   store.user = data
-//   loading.value = false;
-// })
-
 </script>
 
 <template>

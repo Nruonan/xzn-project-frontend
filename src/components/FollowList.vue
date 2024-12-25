@@ -1,19 +1,13 @@
 <script setup>
-
-
-import {get} from "@/net/index.js";
 import {reactive} from "vue";
 import {useStore} from "@/store/index.js";
-import router from "../router/index.js";
+import {apiFollowDetail} from "@/net/api/forum.js";
 const store = useStore()
 const follows = reactive({
   data: []
 })
 
-get('/follow/follow-list',data =>{
-  console.log(data)
-  follows.data = data
-})
+apiFollowDetail(data => follows.data = data)
 function openUserDetail(id) {
   window.open(`/index/user-detail/${id}`, '_blank');
 }

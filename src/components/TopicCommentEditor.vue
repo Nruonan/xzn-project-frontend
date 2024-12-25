@@ -2,8 +2,8 @@
 import  "@vueup/vue-quill/dist/vue-quill.snow.css";
 import {Delta, QuillEditor} from "@vueup/vue-quill";
 import {ref} from "vue";
-import {post} from "../net/index.js";
 import {ElMessage} from "element-plus";
+import {apiForumCommentSubmit} from "@/net/api/forum.js";
 
 const props = defineProps({
   show: Boolean,
@@ -19,7 +19,7 @@ function submitComment(){
     ElMessage.warning('评论字数超出最大限制，请缩减内容')
     return;
   }
-  post('/api/forum/add-comment',{
+  apiForumCommentSubmit({
     tid:props.tid,
     quote: props.quote ? props.quote?.user.id : -1,
     content:JSON.stringify(content.value),

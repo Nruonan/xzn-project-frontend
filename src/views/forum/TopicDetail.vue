@@ -1,8 +1,7 @@
 <script setup>
 import {useRoute} from "vue-router";
-import {get, post} from "@/net/index.js";
-import axios from "axios";
-import {computed, reactive, ref} from "vue";
+import {get} from "@/net/index.js";
+import {reactive, ref} from "vue";
 import {
   Male,
   Female,
@@ -22,6 +21,14 @@ import {ElMessage, ElMessageBox} from "element-plus";
 import {useStore} from "../../store/index.js";
 import TopicEditor from "../../components/TopicEditor.vue";
 import TopicCommentEditor from "../../components/TopicCommentEditor.vue";
+import {
+  apiAccountFollow,
+  apiForumCommentDelete,
+  apiForumComments,
+  apiForumInteract,
+  apiForumTopic,
+  apiForumUpdateTopic
+} from "@/net/api/forum.js";
 const route = useRoute()
 const tid = route.params.tid
 const store = useStore()
@@ -50,7 +57,7 @@ const showAll = (item) => {
 const isShowAll = (item) => {
   return showAllComments[item.id] || false;
 };
-const init = () => get(`/api/forum/topic?tid=${tid}`,data=>{
+const init = () => apiForumTopic(tid,data=>{
   topic.data = data
   topic.like = data.interact.like
   topic.collect = data.interact.collect
@@ -65,15 +72,11 @@ function convertToHtml(content){
 }
 
 function interact(type,message){
-  get(`/api/forum/interact?tid=${tid}&type=${type}&state=${!topic[type]}`,() =>{
-      topic[type] = !topic[type]
-      if (topic[type])ElMessage.success(`${message}成功！`)
-      else ElMessage.success(`已取消${message}！`)
-  })
+  apiForumInteract(tid,type,topic,message)
 }
 
 function updateTopic(editor){
-  post('/api/forum/update-topic',{
+  apiForumUpdateTopic({
     id:tid,
     type: editor.type.id,
     title: editor.title,
@@ -88,7 +91,7 @@ function updateTopic(editor){
 function loadComments(page){
   topic.comments = null
   topic.page = page
-  get(`/api/forum/comments?tid=${tid}&page=${page-1}`,data => topic.comments = data)
+  apiForumComments(tid,page - 1, (data) => topic.comments = data)
 }
 
 function deleteComments(id){
@@ -101,22 +104,16 @@ function deleteComments(id){
         type: 'warning',
       }
   ).then(() => {
-    // 执行删除操作的逻辑
-    get(`api/forum/delete-comment?cid=${id}`,()=>{
+    apiForumCommentDelete(id,() =>{
       ElMessage.success('删除成功');
       loadComments(1)
     })
-
   }).catch(() => {
     ElMessage.info('已取消删除');
   });
 }
 function Follow(id){
-  get(`follow?id=${id}`,()=>{
-    get(`/follow/list`,(data) =>{
-      store.user.follows = data
-    })
-  })
+  apiAccountFollow(id)
 }
 function onCommentAdd(){
   comment.show = false

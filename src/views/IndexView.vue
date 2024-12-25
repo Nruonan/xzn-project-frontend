@@ -128,11 +128,16 @@ import {
   Check, Files, Document, Position, Monitor, Collection, DataLine, House
 } from '@element-plus/icons-vue'
 import { useDark } from '@vueuse/core'
-import {get, logout} from "../net/index.js";
+import {get} from "../net/index.js";
 import {useStore} from "../store/index.js";
 import {ref, reactive, inject} from "vue";
 import LightCard from "../components/LightCard.vue";
 import UserInfo from "@/components/UserInfo.vue";
+import {
+  apiNotificationDelete,
+  apiNotificationDeleteAll,
+  apiNotificationList
+} from "@/net/api/user.js";
 const search = reactive({
   text: '',
   type: '1'
@@ -169,17 +174,17 @@ const loading = inject('userLoading')
 
 
 const loadNotification =
-    () => get('/api/notification/list', (data)=> notification.value = data)
+    () => apiNotificationList(data=> notification.value = data)
 loadNotification()
 
 function confirmNotification(id,url){
-  get(`/api/notification/delete?id=${id}`,()=>{
+  apiNotificationDelete(id, () =>{
     loadNotification()
     window.open(url)
   })
 }
 function deleteAllNotification(){
-  get('/api/notification/delete-all', ()=> loadNotification())
+  apiNotificationDeleteAll(loadNotification)
 }
 </script>
 

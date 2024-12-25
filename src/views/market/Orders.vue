@@ -3,16 +3,16 @@
 import Card from "../../components/Card.vue";
 import router from "../../router/index.js";
 import {ArrowLeft} from "@element-plus/icons-vue";
-import {get, post} from "../../net/index.js";
 import {reactive} from "vue";
-import {useStore} from "../../store/index.js";
+import {useStore} from "@/store/index.js";
 import {ElMessage, ElMessageBox} from "element-plus";
+import {apiOrderList, apiOrderRemove, apiOrderRepeat} from "@/net/api/ticket.js";
 const store = useStore()
 const orders = reactive({
   list:[]
 })
 function init(){
-  get(`/api/ticket/orders?uid=${store.user.id}`,data=>{
+  apiOrderList(store.user.id,data=>{
     orders.list = data
   })
 }
@@ -27,7 +27,7 @@ function saveTicket(id){
         type: 'warning',
       }
   ).then(() => {
-    post(`/api/ticket/order-repeat`,{
+    apiOrderRepeat({
       id:id,
       pay:true
     },()=>{
@@ -48,7 +48,7 @@ function removeOrder(uid, id){
         type: 'warning',
       }
   ).then(() => {
-    post(`/api/ticket/remove-order`,{
+    apiOrderRemove({
       uid:uid,
       id:id,
     },()=>{
@@ -69,7 +69,7 @@ function cancelOrder(uid, id){
         type: 'warning',
       }
   ).then(() => {
-    post(`/api/ticket/remove-order`,{
+    apiOrderRemove({
       uid:uid,
       id:id,
     },()=>{

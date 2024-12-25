@@ -34,10 +34,7 @@ function  truncatedTitle(title) {
   return title.length > 20 ? title.substring(0, 19) + '...' : title;
 }
 
-get('/api/new',data=>{
-  hotList.data = data
-  console.log(hotList.data)
-})
+apiNewList(data => hotList.data = data)
 </script>
 
 <template>

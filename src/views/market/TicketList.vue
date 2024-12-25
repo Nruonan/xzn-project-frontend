@@ -1,11 +1,11 @@
 <script setup>
 import LightCard from "../../components/LightCard.vue";
 import {Search,ShoppingTrolley} from "@element-plus/icons-vue";
-import {reactive, ref} from "vue";
-import {get, post} from "../../net/index.js";
-import {useStore} from "../../store/index.js";
+import {onMounted, reactive, ref} from "vue";
+import {useStore} from "@/store/index.js";
 import router from "../../router/index.js";
 import {ElMessage} from "element-plus";
+import {apiLoadTicketList, apiUserRemind, apiUserRemindSave} from "@/net/api/ticket.js";
 
 
 const store = useStore()
@@ -19,20 +19,17 @@ const tickets = reactive({
   page: 1,
   end: false,
 })
-
+const loading = ref(false)
 const saving = ref(true)
 
-get('/api/user/privacy',data=>{
-  remind.value = data.remind
-  saving.value = false
-})
+
 
 function savePrivacy(type, status){
   saving.value = true
-  post('/api/user/save-privacy',{
+  apiUserRemindSave({
     type:type,
     status: status
-  },()=>{
+  },() => {
     if (status === true){
       ElMessage.success('预约成功！可在消息提醒等候新的神券通知！')
     }else{
@@ -44,27 +41,36 @@ function savePrivacy(type, status){
 }
 
 function SearchTicket(){
+  loading.value = false
   tickets.page = 1;
   tickets.list = null;
   if (type.value ==='全部')type.value = '0'
-  get(`/api/ticket/list?page=${tickets.page - 1}&type=${type.value}&name=${name.value}`,data=>{
+  apiLoadTicketList(tickets.page - 1,type.value, name, data=>{
     tickets.list = data.list
     store.ticket.tickets = data.tickets
   })
+  loading.value = true
   type.value ='全部'
 }
 
 
 function loadTickets(page){
+  loading.value = false
   tickets.page = page;
   tickets.list = null;
-  get(`/api/ticket/list?page=${tickets.page - 1}&type=${tickets.type}&name=${name.value}`,data=>{
+  apiLoadTicketList(tickets.page - 1,tickets.type, name, data=>{
     tickets.list = data.list
     store.ticket.tickets = data.tickets
   })
+  loading.value = true
 }
 loadTickets(1)
-
+onMounted(() => {
+  apiUserRemind(data=>{
+    remind.value = data.remind
+    saving.value = false
+  })
+})
 </script>
 
 <template>
@@ -102,7 +108,7 @@ loadTickets(1)
             <el-button :icon="ShoppingTrolley" type="info" plain @click="router.push('/index/market/ticket/orders')">查看订单</el-button>
           </div>
       </light-card>
-      <light-card style="max-height: 700px;margin-top: 15px;border-radius: 10px">
+      <light-card style="max-height: 700px;margin-top: 15px;border-radius: 10px" v-loading="!loading">
         <el-table :data="tickets.list"  border style="width: 100%;max-height: 700px; margin-top: 15px">
           <el-table-column prop="createTime" label="发布日期" width="180" >
             <template #default="scope">

@@ -11,18 +11,22 @@ import { Calendar,
   Link,
   Picture,
   Microphone, CircleCheck, Star, FolderOpened, ArrowRightBold} from '@element-plus/icons-vue'
-import Weather from "../../components/Weather.vue";
-import {computed, reactive, ref, watch} from "vue";
-import {get} from "../../net/index.js";
+import {computed, onMounted, reactive, ref, watch} from "vue";
 import {ElMessage} from "element-plus";
 import TopicEditor from "../../components/TopicEditor.vue";
-import {useStore} from '../../store/index.js'
+import {useStore} from '@/store/index.js'
 import router from "../../router/index.js";
-import TopicDetail from "./TopicDetail.vue";
 import TopicTag from "../../components/TopicTag.vue";
 import ColorDot from "../../components/ColorDot.vue";
-import InteractButton from "../../components/InteractButton.vue";
+import Weather from "../../components/Weather.vue";
 import TopicCollectList from "../../components/TopicCollectList.vue";
+import {
+  apiCommonData,
+  apiCount,
+  apiForumHotTopics,
+  apiForumTopicList, apiForumTopicListByFollow,
+  apiForumTopTopics, apiForumTypes, apiForumWeather
+} from "@/net/api/forum.js";
 const store = useStore()
 const weather = reactive({
   location: {},
@@ -50,28 +54,20 @@ const count = reactive({
 })
 const collects =ref(false)
 const editor = ref(false)
-get('/api/common',data=>{
-  common.data = data
-})
-get('/api/forum/types',data=>{
-  store.forum.types =data
-})
-get('/api/forum/hot-topic',data=>{
-  hotTopics.value = data
-})
+
+
+
 watch(()=>topics.type,()=> resetList(),{immediate:true})
 const today = computed(()=>{
   const date = new Date();
   return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月 ${date.getDate()} 日`
 })
 
-get('api/forum/top-topic',data =>{
-    topics.top = data
-})
+
 function updateList(){
   if (topics.end)return
   if (topics.type === 6){
-    get(`/api/forum/list-topic-follow?page=${topics.page}`,data => {
+    apiForumTopicListByFollow(topics.page,data => {
       if (data){
         data.forEach(d => topics.list.push(d))
         topics.page++
@@ -81,7 +77,7 @@ function updateList(){
       }
     })
   }else{
-    get(`/api/forum/list-topic?page=${topics.page}&type=${topics.type}`,data => {
+    apiForumTopicList(topics.page,topics.type, data => {
       if (data){
         data.forEach(d => topics.list.push(d))
         topics.page++
@@ -90,6 +86,7 @@ function updateList(){
         topics.end = true
       }
     })
+
   }
 }
 function onTopicCreate(){
@@ -102,35 +99,32 @@ function resetList(){
   topics.list =[]
   updateList()
 }
-navigator.geolocation.getCurrentPosition(position =>{
-    const longitude = position.coords.longitude
-    const latitude = position.coords.latitude
-    get(`/api/forum/weather?longitude=${longitude}&latitude=${latitude}`,data =>{
-        Object.assign(weather, data)
-        weather.success = true
-    })
-
-},error =>{
-  ElMessage.warning('位置信息获取超时，请检查网络设置')
-  get(`/api/forum/weather?longitude=113.3646&latitude=22.9386`,data =>{
+navigator.geolocation.getCurrentPosition(position => {
+  const longitude = position.coords.longitude
+  const latitude = position.coords.latitude
+  apiForumWeather(longitude, latitude, data => {
     Object.assign(weather, data)
     weather.success = true
   })
-},{
+}, error => {
+  console.info(error)
+  ElMessage.warning('位置信息获取超时，请检测网络设置')
+  apiForumWeather(113.40529, 22.90499, data => {
+    Object.assign(weather, data)
+    weather.success = true
+  })
+}, {
   timeout: 3000,
   enableHighAccuracy: true
 })
 function pushTopic(item){
-  if(topics.type === 6){
-    router.push(`/index/topic-detail/${item.id}`)
-  }else{
-    router.push(`/index/topic-detail/${item.id}`)
-  }
+  router.push(`/index/topic-detail/${item.id}`)
 }
-get('/api/data/count',data=>{
-  console.log(data)
-  count.uv = data.uv
-  count.dau = data.dau
+onMounted(() =>{
+  apiCount(count)
+  apiForumTopTopics(data => topics.top = data)
+  apiCommonData(data => common.data = data)
+  apiForumHotTopics(data => hotTopics.value = data)
 })
 </script>
 
@@ -233,7 +227,7 @@ get('/api/data/count',data=>{
             <el-icon><Calendar/></el-icon>
             天气信息
           </div>
-          <weather :data="weather" />
+          <Weather :data="weather"/>
         </light-card>
         <light-card style="margin-top: 10px" element-loading-text="正在加载数据...">
           <div class="info-text">

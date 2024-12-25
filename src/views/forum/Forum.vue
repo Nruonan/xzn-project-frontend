@@ -1,12 +1,14 @@
 <script setup lang="js">
-import {get} from "../../net/index.js";
-import {useStore} from "../../store/index.js";
+import {get} from "@/net/index.js";
+import {useStore} from "@/store/index.js";
+import {onMounted} from "vue";
+import {apiFollowList, apiForumTypes} from "@/net/api/forum.js";
 const store = useStore()
-get('/api/forum/types',data=>{
-  store.forum.types = data
-})
-get(`/follow/list`,(data) =>{
-  store.user.follows = data
+
+
+onMounted(() => {
+  apiForumTypes()
+  apiFollowList()
 })
 </script>
 

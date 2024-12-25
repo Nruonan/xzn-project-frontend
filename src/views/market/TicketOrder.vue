@@ -4,11 +4,12 @@ import {useRoute} from "vue-router";
 import router from "../../router/index.js";
 import {ArrowLeft,ArrowLeftBold,ArrowRightBold} from "@element-plus/icons-vue";
 import {get, post} from "../../net/index.js";
-import {reactive, ref} from "vue";
+import {onMounted, reactive, ref} from "vue";
 import {useStore} from "../../store/index.js";
 import LightCard from "../../components/LightCard.vue";
 import { AlipayOutlined,WechatFilled,CreditCardFilled,SkypeFilled} from '@ant-design/icons-vue';
 import {ElMessage, ElMessageBox} from "element-plus";
+import {apiOrderSave, apiTakeTicketOrder, apiTicketDetail} from "@/net/api/ticket.js";
 
 const store = useStore()
 const route = useRoute()
@@ -29,12 +30,8 @@ const ticket = reactive({
 })
 
 
-
-get(`api/ticket?id=${tid}`,data =>{
-    ticket.data = data
-})
 function takeTicketOrder(){
-  post(`/api/ticket/save-order`,{
+  apiTakeTicketOrder({
     uid: store.user.id,
     tid: ticket.data.id,
     count:count.value,
@@ -55,7 +52,7 @@ function buyTicketOrder(){
         type: 'warning',
       }
   ).then(() => {
-    post(`/api/ticket/save-order`,{
+    apiOrderSave({
       uid: store.user.id,
       tid: ticket.data.id,
       count:count.value,
@@ -66,7 +63,7 @@ function buyTicketOrder(){
       router.push('/index/market')
     })
   }).catch(() => {
-    post(`/api/ticket/save-order`,{
+    apiOrderSave({
       uid: store.user.id,
       tid: ticket.data.id,
       count:count.value,
@@ -79,10 +76,15 @@ function buyTicketOrder(){
     })
   });
 }
+onMounted(() => {
+  apiTicketDetail(tid, data => {
+    ticket.data = data
+  })
+})
 </script>
 
 <template>
-  <div style="display: flex; margin: 30px 250px; gap:20px; max-width: 600px;">
+  <div style="display: flex; margin: 30px 250px; gap:20px; max-width: 600px;" v-loading="!ticket.data">
       <div style="flex: 1">
         <div class="ticket-main" style="position: sticky; top:0;z-index: 10">
           <card style="display: flex;width: 100%">

@@ -1,10 +1,10 @@
 <script setup >
-import {get} from "../../net/index.js";
-import {useStore} from "../../store/index.js";
+import {useStore} from "@/store/index.js";
+import {onMounted} from "vue";
+import {apiTicketTypes} from "@/net/api/ticket.js";
 const store = useStore()
-get('/api/ticket/types',data=>{
-  store.ticket.types = data;
-})
+
+onMounted(() => apiTicketTypes())
 </script>
 
 <template>

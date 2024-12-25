@@ -79,7 +79,7 @@ import {
 } from "@ant-design/icons-vue";
 import {useRouter} from "vue-router";
 import {ElMessage} from "element-plus";
-import {get, post} from "../../net/index.js";
+import {apiAuthAskCode, apiAuthRegister} from "@/net/api/user.js";
 const router = useRouter()
 const coldTime = ref(0)
 const form = reactive({
@@ -131,14 +131,7 @@ const rules = {
 };
 function  askCode(){
   if(isEmailValid){
-    coldTime.value=60
-    get(`/api/auth/ask-code?email=${form.email}&type=register`,() =>{
-      ElMessage.success('验证码已发送到邮箱，请注意查收')
-      setInterval (() => coldTime.value--,1000)
-    },(message) => {
-      ElMessage.warning(message)
-      coldTime.value = 0
-    })
+    apiAuthAskCode(form.email,coldTime)
   }else{
     ElMessage.warning('请输入正确的电子邮件！')
     coldTime.value = 0
@@ -149,9 +142,11 @@ const isEmailValid = computed(() =>/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{
 function register() {
   formRef.value.validate((valid) =>{
     if(valid){
-      post('/api/auth/register',{...form},()=>{
-        ElMessage.success('注册成功，欢迎加入我们')
-        router.push('/')
+      apiAuthRegister({
+        username: form.username,
+        password: form.password,
+        email: form.email,
+        code: form.code
       })
     }else{
       ElMessage.warning('请完整填写注册内容')

@@ -6,10 +6,11 @@ import ImageResize from "quill-image-resize-vue";
 import {ImageExtend, QuillWatch} from "quill-image-super-solution-module";
 import {Delta, Quill, QuillEditor} from "@vueup/vue-quill";
 import axios from "axios";
-import {accessHeader, get, post} from "../net/index.js";
+import {accessHeader} from "../net/index.js";
 import {ElMessage} from "element-plus";
 import ColorDot from "./ColorDot.vue";
 import {useStore} from '../store/index.js'
+import {apiForumTopicCreate} from "@/net/api/forum.js";
 const store = useStore()
 Quill.register('modules/imageResize', ImageResize)
 Quill.register('modules/ImageExtend',ImageExtend)
@@ -34,7 +35,7 @@ const props = defineProps({
   },
   submit: {
     default:(editor, success)=>{
-      post('/api/forum/create-topic',{
+      apiForumTopicCreate({
         type: editor.type.id,
         title: editor.title,
         content: editor.text
@@ -105,7 +106,7 @@ function findTypeById(id){
   }
 }
 
-get('/api/forum/types',data=>store.forum.types=data)
+// get('/api/forum/types',data=>store.forum.types=data)
 const editorOption = {
   modules: {
     toolbar: {

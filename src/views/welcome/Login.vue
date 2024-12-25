@@ -77,7 +77,7 @@ import { UserOutlined,LockOutlined ,SafetyCertificateOutlined } from '@ant-desig
 import {login} from "../../net/index.js";
 import {ElMessage} from "element-plus";
 import { useRouter } from 'vue-router'
-import {getUserInfo} from "@/net/api/user.js";
+import {apiUserInfo} from "@/net/api/user.js";
 const router = useRouter()
 //--------------------- 登录表单 ---------------------------------
 const formRef = ref()
@@ -107,7 +107,7 @@ function userLogin(){
     if(valid){
       if(Code.value === form.code){
         login(form.username,form.password,form.remember,()=>{
-          getUserInfo(loading)
+          apiUserInfo(loading)
           router.push("/index")
         })
       }else{

@@ -1,18 +1,13 @@
 <script setup>
-
-
-import {get} from "@/net/index.js";
 import {reactive} from "vue";
 import {useStore} from "@/store/index.js";
+import {apiFansDetail} from "@/net/api/forum.js";
 const store = useStore()
 const fans = reactive({
   data: []
 })
 
-get('/follow/fans-list',data =>{
-  console.log(data)
-  fans.data = data
-})
+apiFansDetail(data => fans.data = data)
 function refreshPage(){
   location.reload()
 }
