@@ -137,6 +137,6 @@ function isUnauthorized() {
   return !isExpire()
 }
 function isRoleAdmin() {
-  return takeAccessToken().role === 'admin'
+  return takeAccessToken()?.role === 'admin'
 }
 export { post, get, login, logout, isUnauthorized, isRoleAdmin, accessHeader }
