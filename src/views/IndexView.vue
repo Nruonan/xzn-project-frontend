@@ -3,8 +3,9 @@
     <div class="main-content" v-loading="loading" element-loading-text="正在进入，请稍后...">
       <el-container style="height: 100%" v-if="!loading">
         <el-header class="main-content-header">
-          <el-image class="logo" src="https://vignette.wikia.nocookie.net/onepiece/images/8/89/Wiki-wordmark.png/revision/latest/scale-to-height-down/40"></el-image>
-
+          <div style="width: 320px">
+            <el-image  src="https://vignette.wikia.nocookie.net/onepiece/images/8/89/Wiki-wordmark.png/revision/latest/scale-to-height-down/40"></el-image>
+          </div>
           <div style="flex: 1; text-align: center; padding: 0 20px; "  >
             <el-input v-model="search.text" style="width: 100%; max-width: 500px; " placeholder="搜索论坛相关内容...">
               <template #prefix>
@@ -32,11 +33,11 @@
                    :inactive-action-icon="Sunny"
                 />
               </div>
-          <div class="user-info">
+          <user-info>
             <el-popover placement="bottom" :width="350" trigger="click"
                         popper-style="background-color:var(--el-popover-border-color);box-shadow: rgb(14 18 22 / 35%) 0px 10px 38px -10px, rgb(14 18 22 / 20%) 0px 10px 20px -15px; padding: 20px;">
               <template #reference>
-                <el-badge style="margin-right: 15px;" is-dot :hidden="!notification.length">
+                <el-badge is-dot :hidden="!notification.length">
                   <div class="notification">
                     <el-icon><Bell/></el-icon>
                     <div style="font-size: 10px">消息</div>
@@ -47,7 +48,7 @@
                 <el-empty :image-size="80" description="暂时没有未读消息哦~" v-if="!notification.length"></el-empty>
                 <el-scrollbar :max-height="500" v-else>
                   <light-card v-for="item in notification" class="notification-item"
-                        @click="confirmNotification(item.id,item.url)">
+                              @click="confirmNotification(item.id,item.url)">
                     <div>
                       <el-tag size="small" :type="item.type">消息</el-tag>&nbsp;
                       <span style="font-weight: bold">{{item.title}}</span>
@@ -58,148 +59,35 @@
                     </div>
                   </light-card>
                   <div style="margin-top: 10px">
-                      <el-button size="small" type="info" :icon="Check" @click="deleteAllNotification" style="width: 100%" plain>清除全部未读消息</el-button>
+                    <el-button size="small" type="info" :icon="Check" @click="deleteAllNotification" style="width: 100%" plain>清除全部未读消息</el-button>
                   </div>
                 </el-scrollbar>
               </template>
-
             </el-popover>
-            <div class="profile" >
-              <div style=" font-size: 18px; font-weight: bold;  line-height: 20px;">{{store.user.username}}</div>
-              <div style=" font-size: 10px; color: grey;">{{store.user.email}}</div>
-            </div>
-          </div>
-            <el-dropdown>
-              <el-avatar :src="store.avatarUrl"/>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="router.push('/index/user-setting')">
-                    <el-icon><Operation /></el-icon>
-                    个人设置
-                  </el-dropdown-item>
-                  <el-dropdown-item> 
-                    <el-icon><Message/></el-icon>消息列表
-                  </el-dropdown-item>
-                  <el-dropdown-item @click="userLogout" divided>
-                    <el-icon><Back/></el-icon>退出登录
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
+          </user-info>
         </el-header>
         <el-container>
           <el-aside width="230px">
             <el-scrollbar style="height: calc(100vh - 55px)">
-              <!-- 第一部分：校园论坛 -->
                 <el-menu 
                     router
                     :default-active="$route.path"
                     :default-openeds="['1','2','3']"
-                    style="min-height: calc(100vh - 55px)">
-                  <el-sub-menu index="1">
-                    <template #title>
-                      <el-icon><Location /></el-icon>
-                      <span><b>校园论坛</b></span>
-                    </template>
-                    <el-menu-item index="/index">
-                      <el-icon><ChatDotSquare /></el-icon>
-                      <template #title>
-                        帖子广场
-                      </template>
-                    </el-menu-item>
-                    <el-menu-item index="/index/market">
-                      <template #title>
-                        <el-icon><Money /></el-icon>
-                        神券抢购
-                      </template>
-                    </el-menu-item>
-                    <el-menu-item>
-                      <template #title>
-                        <el-icon><Notification /></el-icon>
-                        校园活动(未开发)
-                      </template>
-                    </el-menu-item>
-                    <el-menu-item>
-                      <template #title>
-                        <el-icon><Bell /></el-icon>
-                        失物招领(未开发)
-                      </template>
-                    </el-menu-item>
-<!--                    <el-menu-item index="/index/relax">-->
-                    <el-menu-item>
-                      <template #title>
-                        <el-icon><ToiletPaper /></el-icon>
-                        放松一刻(未开发)
-<!--                        <el-tag style="margin-left:10px" size="small">合作机构</el-tag>-->
-                      </template>
-                    </el-menu-item>
-                  </el-sub-menu>
-                  <el-sub-menu index="2">
-                    <template #title>
-                      <el-icon><Position/></el-icon>
-                      <span><b>探索与发现</b></span>
-                    </template>
-                    <el-menu-item>
-                      <template #title>
-                        <el-icon><Document/></el-icon>
-                        成绩查询(未开发)
-                      </template>
-                    </el-menu-item>
-                    <el-menu-item>
-                      <template #title>
-                        <el-icon><Files/></el-icon>
-                        班级课程表(未开发)
-                      </template>
-                    </el-menu-item>
-                    <el-menu-item>
-                      <template #title>
-                        <el-icon><Monitor/></el-icon>
-                        教务通知(未开发)
-                      </template>
-                    </el-menu-item>
-                    <el-menu-item>
-                      <template #title>
-                        <el-icon><Collection/></el-icon>
-                        在线图书馆(未开发)
-                      </template>
-                    </el-menu-item>
-                    <el-menu-item>
-                      <template #title>
-                        <el-icon><DataLine/></el-icon>
-                        预约教室(未开发)
-                      </template>
-                    </el-menu-item>
-                  </el-sub-menu>
-              <!-- 第二部分：个人设置 -->
-                <el-sub-menu index="3">
+                    style="min-height: calc(100vh - 52px)">
+                  <el-sub-menu :index="(index + 1).toString()"
+                               v-for="(menu, index) in userMenu">
                     <template #title>
                       <el-icon>
-                        <Operation />
+                        <component :is="menu.icon"/>
                       </el-icon>
-                      <span><b>个人设置</b></span>
+                      <span><b>{{ menu.title }}</b></span>
                     </template>
-                  <el-menu-item :index="`/index/user-detail/${store.user.id}`">
-                    <template #title>
-                      <el-icon>
-                        <House />
-                      </el-icon>
-                      用户主页面
-                    </template>
-                  </el-menu-item>
-                  <el-menu-item index="/index/user-setting">
-                    <template #title>
-                      <el-icon>
-                        <User />
-                      </el-icon>
-                      个人信息设置
-                    </template>
-                  </el-menu-item>
-                    <el-menu-item index="/index/privacy-setting">
+                    <el-menu-item :index="subMenu.index" v-for="subMenu in menu.sub">
                       <template #title>
                         <el-icon>
-                          <Lock />
+                          <component :is="subMenu.icon"/>
                         </el-icon>
-                        账号安全设置
+                        {{ subMenu.title }}
                       </template>
                     </el-menu-item>
                   </el-sub-menu>
@@ -207,7 +95,7 @@
             </el-scrollbar>
           </el-aside>
           <el-main class="main-content-page">
-              <el-scrollbar style="height: calc(100vh - 55px)">
+              <el-scrollbar style="height: calc(100vh - 52px)">
                   <router-view v-slot="{ Component }">
                     <transition name="el-fade-in-linear" mode="out-in">
                       <component :is="Component" style="height: 100%"/>
@@ -246,6 +134,7 @@ import {get, logout} from "../net/index.js";
 import {useStore} from "../store/index.js";
 import {ref,reactive} from "vue";
 import LightCard from "../components/LightCard.vue";
+import UserInfo from "@/components/UserInfo.vue";
 const search = reactive({
   text: '',
   type: '1'
@@ -254,10 +143,35 @@ const store = useStore()
 const loading = ref(true)
 const isDark = useDark()
 const notification = ref([])
-
+let userMenu = []
 get('/api/user/info',(data)=>{
   store.user = data
   loading.value = false;
+  userMenu = [
+    {
+      title: '校园论坛', icon: Location, sub: [
+        { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
+        { title: '神券抢购', icon: Money, index: '/index/market' },
+        { title: '失物招领（未开发）', icon: Bell },
+        { title: '校园活动（未开发）', icon: Notification },
+        { title: '放松一刻（未开发）', icon: ToiletPaper }
+      ]
+    }, {
+      title: '探索与发现', icon: Position, sub: [
+        { title: '成绩查询（未开发）', icon: Document },
+        { title: '班级课程表（未开发）', icon: Files },
+        { title: '教务通知（未开发）', icon: Monitor },
+        { title: '在线图书馆（未开发）', icon: Collection },
+        { title: '预约教室（未开发）', icon: DataLine }
+      ]
+    }, {
+      title: '个人设置', icon: Operation, sub: [
+        { title: '用户主页面', icon: House, index: `/index/user-detail/${store.user.id}` },
+        { title: '个人信息设置', icon: User, index: '/index/user-setting' },
+        { title: '账号安全设置', icon: Lock, index: '/index/privacy-setting' }
+      ]
+    }
+  ]
 })
 
 const loadNotification =
@@ -273,11 +187,6 @@ function confirmNotification(id,url){
 function deleteAllNotification(){
   get('/api/notification/delete-all', ()=> loadNotification())
 }
-const userLogout = function(){
-  logout(() => router.push("/"))
-}
-
-
 </script>
 
 <style scoped lang="less">

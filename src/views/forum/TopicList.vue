@@ -135,7 +135,7 @@ get('/api/data/count',data=>{
 </script>
 
 <template>
-  <div style="display: flex; margin: 20px auto; gap:20px; max-width: 925px;">
+  <div style="display: flex; margin: 20px auto; gap:20px; max-width: 940px; padding: 20px;">
     <div style="flex: 1">
       <light-card >
           <div class="create-topic" @click="editor = true">

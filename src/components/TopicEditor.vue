@@ -158,7 +158,6 @@ const editorOption = {
 </script>
 
 <template>
-  <div>
     <el-drawer @open="initEditor" :model-value="show" direction="btt" :size="650" :close-on-click-modal="false" @close="emit('close')">
       <template #header>
         <div>
@@ -199,7 +198,6 @@ const editorOption = {
         </div>
       </div>
     </el-drawer>
-  </div>
 </template>
 
 <style scoped>

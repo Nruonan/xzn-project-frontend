@@ -5,7 +5,7 @@ const authItemName = "authorize"
 
 const accessHeader = () => {
   return {
-    'Authorization': `Bearer ${takeAccessToken()}`,
+    'Authorization': `Bearer ${takeAccessToken()?.access_token}`,
   }
 }
 
@@ -28,7 +28,7 @@ function takeAccessToken() {
       //ElMessage.warning("登录状态已过期，请重新登录！")
       return null
   }
-  return authObj.access_token
+  return authObj
 }
 
 function isExpire(){
@@ -45,13 +45,13 @@ function isExpire(){
       if (data.data != null) {
         str = localStorage.getItem(authItemName);
         if(!str) {
-          storeAccessToken(true, data.data.access_token, data.data.access_expire, data.data.refresh_token)
-          //sessionStorage.removeItem(authItemName)
+          storeAccessToken(true, data.data.access_token, data.data.access_expire, data.data.refresh_token,data.data.role)
+          sessionStorage.removeItem(authItemName)
           return true
         }else{
           const auth = JSON.parse(str)
           if( new Date(authObj.access_expire) <= new Date()){
-            storeAccessToken(true, data.data.access_token, data.data.access_expire, data.data.refresh_token)
+            storeAccessToken(true, data.data.access_token, data.data.access_expire, data.data.refresh_token,data.data.role)
             return true
           }else{
             return true
@@ -67,11 +67,12 @@ function isExpire(){
   }
   return true
 }
-function storeAccessToken(remember, token, expire, refresh_token){
+function storeAccessToken(remember, token, expire, refresh_token,role){
   const authObj = {
     access_token: token,
     access_expire: expire,
-    refresh_token: refresh_token
+    refresh_token: refresh_token,
+    role: role
   }
   const str = JSON.stringify(authObj)
   if(remember)
@@ -110,7 +111,7 @@ function login(username, password, remember, success, failure = defaultFailure){
   }, {
     'Content-Type': 'application/x-www-form-urlencoded'
   }, (data) => {
-    storeAccessToken(remember, data.access_token, data.access_expire, data.refresh_token)
+    storeAccessToken(remember, data.access_token, data.access_expire, data.refresh_token,data.role)
     ElMessage.success(`登录成功，欢迎 ${username} 来到我们的系统`)
     success(data)
   }, failure)
@@ -132,8 +133,10 @@ function get(url, success, failure = defaultFailure) {
   internalGet(url, accessHeader(), success, failure)
 }
 
-function unauthorized() {
+function isUnauthorized() {
   return !isExpire()
 }
-
-export { post, get, login, logout, unauthorized, accessHeader }
+function isRoleAdmin() {
+  return takeAccessToken().role === 'admin'
+}
+export { post, get, login, logout, isUnauthorized, isRoleAdmin, accessHeader }
