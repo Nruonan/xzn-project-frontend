@@ -70,13 +70,14 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue';
+import {inject, reactive, ref} from 'vue';
 import loginQR from '../../assets/images/login-qr.png';
 import PicCode from "../../components/PicCode/PicCode.vue";
 import { UserOutlined,LockOutlined ,SafetyCertificateOutlined } from '@ant-design/icons-vue';
 import {login} from "../../net/index.js";
 import {ElMessage} from "element-plus";
 import { useRouter } from 'vue-router'
+import {getUserInfo} from "@/net/api/user.js";
 const router = useRouter()
 //--------------------- 登录表单 ---------------------------------
 const formRef = ref()
@@ -100,12 +101,15 @@ const rules = {
   password: [{ required: true, message: '密码不能为空' }],
   code: [{ required: true, message: '验证码不能为空' }],
 };
-
+const loading = inject('userLoading')
 function userLogin(){
   formRef.value.validate((valid) => {
     if(valid){
       if(Code.value === form.code){
-        login(form.username,form.password,form.remember,()=>{router.push("/index")})
+        login(form.username,form.password,form.remember,()=>{
+          getUserInfo(loading)
+          router.push("/index")
+        })
       }else{
         ElMessage.error("验证码错误，请重新输入")
       }

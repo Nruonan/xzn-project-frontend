@@ -109,12 +109,10 @@
 </template>
 
 <script setup>
-import router from "../router/index.js";
 import {
   Sunny,
   Moon,
   Location,
-  Back,
   ChatDotSquare,
   Message,
   Bell,
@@ -132,7 +130,7 @@ import {
 import { useDark } from '@vueuse/core'
 import {get, logout} from "../net/index.js";
 import {useStore} from "../store/index.js";
-import {ref,reactive} from "vue";
+import {ref, reactive, inject} from "vue";
 import LightCard from "../components/LightCard.vue";
 import UserInfo from "@/components/UserInfo.vue";
 const search = reactive({
@@ -140,39 +138,35 @@ const search = reactive({
   type: '1'
 })
 const store = useStore()
-const loading = ref(true)
 const isDark = useDark()
 const notification = ref([])
-let userMenu = []
-get('/api/user/info',(data)=>{
-  store.user = data
-  loading.value = false;
-  userMenu = [
-    {
-      title: '校园论坛', icon: Location, sub: [
-        { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
-        { title: '神券抢购', icon: Money, index: '/index/market' },
-        { title: '失物招领（未开发）', icon: Bell },
-        { title: '校园活动（未开发）', icon: Notification },
-        { title: '放松一刻（未开发）', icon: ToiletPaper }
-      ]
-    }, {
-      title: '探索与发现', icon: Position, sub: [
-        { title: '成绩查询（未开发）', icon: Document },
-        { title: '班级课程表（未开发）', icon: Files },
-        { title: '教务通知（未开发）', icon: Monitor },
-        { title: '在线图书馆（未开发）', icon: Collection },
-        { title: '预约教室（未开发）', icon: DataLine }
-      ]
-    }, {
-      title: '个人设置', icon: Operation, sub: [
-        { title: '用户主页面', icon: House, index: `/index/user-detail/${store.user.id}` },
-        { title: '个人信息设置', icon: User, index: '/index/user-setting' },
-        { title: '账号安全设置', icon: Lock, index: '/index/privacy-setting' }
-      ]
-    }
-  ]
-})
+let userMenu = [
+  {
+    title: '校园论坛', icon: Location, sub: [
+      { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
+      { title: '神券抢购', icon: Money, index: '/index/market' },
+      { title: '失物招领（未开发）', icon: Bell },
+      { title: '校园活动（未开发）', icon: Notification },
+      { title: '放松一刻（未开发）', icon: ToiletPaper }
+    ]
+  }, {
+    title: '探索与发现', icon: Position, sub: [
+      { title: '成绩查询（未开发）', icon: Document },
+      { title: '班级课程表（未开发）', icon: Files },
+      { title: '教务通知（未开发）', icon: Monitor },
+      { title: '在线图书馆（未开发）', icon: Collection },
+      { title: '预约教室（未开发）', icon: DataLine }
+    ]
+  }, {
+    title: '个人设置', icon: Operation, sub: [
+      { title: '用户主页面', icon: House, index: `/index/user-detail/${store.user.id}` },
+      { title: '个人信息设置', icon: User, index: '/index/user-setting' },
+      { title: '账号安全设置', icon: Lock, index: '/index/privacy-setting' }
+    ]
+  }
+]
+const loading = inject('userLoading')
+
 
 const loadNotification =
     () => get('/api/notification/list', (data)=> notification.value = data)
