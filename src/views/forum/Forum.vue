@@ -1,5 +1,4 @@
 <script setup lang="js">
-import {get} from "@/net/index.js";
 import {useStore} from "@/store/index.js";
 import {onMounted} from "vue";
 import {apiFollowList, apiForumTypes} from "@/net/api/forum.js";
