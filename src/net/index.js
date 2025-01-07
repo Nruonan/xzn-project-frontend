@@ -88,19 +88,27 @@ function deleteAccessToken() {
 
 function internalPost(url, data, headers, success, failure, error = defaultError){
   axios.post(url, data, { headers: headers }).then(({data}) => {
-    if(data.code === 200)
+    if(data.code === 200) {
       success(data.data)
-    else
+    } else if(data.code === 401) {
+      failure('登录状态已过期，请重新登录！')
+      deleteAccessToken(true)
+    } else {
       failure(data.message, data.code, url)
+    }
   }).catch(err => error(err))
 }
 
 function internalGet(url, headers, success, failure, error = defaultError){
   axios.get(url, { headers: headers }).then(({data}) => {
-    if(data.code === 200)
+    if(data.code === 200) {
       success(data.data)
-    else
+    } else if(data.code === 401) {
+      failure('登录状态已过期，请重新登录！')
+      deleteAccessToken(true)
+    } else {
       failure(data.message, data.code, url)
+    }
   }).catch(err => error(err))
 }
 
