@@ -80,3 +80,14 @@ export const apiFollowDetail = (success) =>
 
 export const apiFansDetail = (success) =>
     get('/follow/fans-list', success)
+
+export const apiTopicList = (page, size, success) =>
+    get(`/api/admin/forum/list?page=${page}&size=${size}`, success)
+export const apiTopicDetail = (id, success) =>
+    get(`/api/admin/forum/detail?id=${id}`, success)
+
+export const apiTopicUpdate = (data, success) =>
+    post('/api/admin/forum/update', data, success)
+
+export const apiTopicRemove = (id, success) =>
+    get(`/api/admin/forum/remove?id=${id}`, success)

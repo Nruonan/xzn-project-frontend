@@ -203,7 +203,7 @@ const editorOption = {
 
 <style scoped>
 :deep(.el-drawer){
-  width: 800px;
+  width: 500px;
   margin: auto;
   border-radius: 10px 10px 0 0;
 }
