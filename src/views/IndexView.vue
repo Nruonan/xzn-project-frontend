@@ -69,29 +69,29 @@
         <el-container>
           <el-aside width="230px">
             <el-scrollbar style="height: calc(100vh - 55px)">
-                <el-menu 
-                    router
-                    :default-active="$route.path"
-                    :default-openeds="['1','2','3']"
-                    style="min-height: calc(100vh - 52px)">
-                  <el-sub-menu :index="(index + 1).toString()"
-                               v-for="(menu, index) in userMenu">
+              <el-menu
+                  router
+                  :default-active="$route.path"
+                  :default-openeds="['1','2','3']"
+                  style="min-height: calc(100vh - 52px)">
+                <el-sub-menu :index="(index + 1).toString()"
+                             v-for="(menu, index) in userMenu">
+                  <template #title>
+                    <el-icon>
+                      <component :is="menu.icon"/>
+                    </el-icon>
+                    <span><b>{{ menu.title }}</b></span>
+                  </template>
+                  <el-menu-item :index="subMenu.index" v-for="subMenu in menu.sub">
                     <template #title>
                       <el-icon>
-                        <component :is="menu.icon"/>
+                        <component :is="subMenu.icon"/>
                       </el-icon>
-                      <span><b>{{ menu.title }}</b></span>
+                      {{ subMenu.title }}
                     </template>
-                    <el-menu-item :index="subMenu.index" v-for="subMenu in menu.sub">
-                      <template #title>
-                        <el-icon>
-                          <component :is="subMenu.icon"/>
-                        </el-icon>
-                        {{ subMenu.title }}
-                      </template>
-                    </el-menu-item>
-                  </el-sub-menu>
-                </el-menu>
+                  </el-menu-item>
+                </el-sub-menu>
+              </el-menu>
             </el-scrollbar>
           </el-aside>
           <el-main class="main-content-page">
@@ -153,14 +153,6 @@ let userMenu = [
       { title: '失物招领（未开发）', icon: Bell },
       { title: '校园活动（未开发）', icon: Notification },
       { title: '放松一刻（未开发）', icon: ToiletPaper }
-    ]
-  }, {
-    title: '探索与发现', icon: Position, sub: [
-      { title: '成绩查询（未开发）', icon: Document },
-      { title: '班级课程表（未开发）', icon: Files },
-      { title: '教务通知（未开发）', icon: Monitor },
-      { title: '在线图书馆（未开发）', icon: Collection },
-      { title: '预约教室（未开发）', icon: DataLine }
     ]
   }, {
     title: '个人设置', icon: Operation, sub: [
@@ -299,5 +291,35 @@ function deleteAllNotification(){
   background: var(--el-border-color-extra-light) ;
   right: 0;
 
+}
+:deep(.el-sub-menu__title) {
+  position: relative;
+  margin: 5px 10px;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+:deep(.el-sub-menu__title:hover) {
+  background-color: var(--el-menu-hover-bg-color);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+:deep(.el-menu-item) {
+  position: relative;
+  margin: 2px 10px;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+:deep(.el-menu-item:hover) {
+  background-color: var(--el-menu-hover-bg-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+}
+
+:deep(.el-menu-item.is-active) {
+  background-color: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
 }
 </style>

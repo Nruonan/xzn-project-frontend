@@ -29,14 +29,6 @@ const adminMenu = [
       {title: '失物招领管理', icon: Bell},
       {title: '放松一刻管理', icon: ToiletPaper},
     ]
-  },{
-    title: '探索与发现管理', icon: Position, sub:[
-      {title: '成绩查询管理', icon: Document},
-      {title: '班级课程表管理', icon: Files},
-      {title: '教务通知管理', icon: Monitor},
-      {title: '在线图书馆管理', icon: Collection},
-      {title: '预约教室管理', icon: DataLine},
-    ]
   }
 ]
 const pageTabs = ref([])
