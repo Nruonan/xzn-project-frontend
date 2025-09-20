@@ -32,3 +32,18 @@ export const apiOrderRepeat = (data, success) =>
 
 export const apiOrderRemove = (data, success) =>
     post(`/api/ticket/remove-order`, data, success)
+
+export const apiAdminTicketList = (page, size, success) =>
+    get(`/api/admin/ticket/list?page=${page}&size=${size}`, success)
+
+export const apiAdminTicketDetail = (id, success) =>
+    get(`/api/admin/ticket/detail?id=${id}`, success)
+
+export const apiAdminTicketAdd = (data, success) =>
+    post(`/api/admin/ticket/add`, data, success)
+
+export const apiAdminTicketUpdate = (data, success) =>
+    post(`/api/admin/ticket/update`, data, success)
+
+export const apiAdminTicketRemove = (id, success) =>
+    get(`/api/admin/ticket/remove?id=${id}`, success)
