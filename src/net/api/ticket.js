@@ -47,3 +47,15 @@ export const apiAdminTicketUpdate = (data, success) =>
 
 export const apiAdminTicketRemove = (id, success) =>
     get(`/api/admin/ticket/remove?id=${id}`, success)
+
+export const apiAdminOrderList = (page, size, success) =>
+    get(`/api/admin/ticket/order/list?page=${page}&size=${size}`, success)
+
+export const apiAdminOrderDelete = (id, success) =>
+    get(`/api/admin/ticket/order/remove?id=${id}`, success)
+
+export const apiAdminOrderDetail = (id, success) =>
+    get(`/api/admin/ticket/order/detail?id=${id}`, success)
+
+export const apiAdminOrderUpdate = (data, success) =>
+    post(`/api/admin/ticket/order/update`, data, success)
