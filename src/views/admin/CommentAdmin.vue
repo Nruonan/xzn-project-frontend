@@ -1,5 +1,5 @@
 <script setup>
-import { Document, Delete, EditPen, View } from '@element-plus/icons-vue'
+import { Document, Delete, EditPen, View, Search } from '@element-plus/icons-vue'
 import {
   apiAdminCommentList,
   apiAdminCommentDetail,
@@ -21,7 +21,9 @@ const commentTable = reactive({
   page: 1,
   size: 10,
   total: 0,
-  data: []
+  data: [],
+  searchContent: '', // 添加搜索内容字段
+  isSearching: false // 添加搜索状态标识
 })
 
 // 打开详情查看
@@ -71,23 +73,66 @@ function deleteComment(id) {
   ).then(() => {
     apiAdminCommentRemove(id, () => {
       ElMessage.success('删除成功!')
-      // 重新加载数据
-      watchEffect(() => apiAdminCommentList(commentTable.page, commentTable.size, data => {
-        commentTable.total = data.total
-        commentTable.data = data.list
-      }))
+      // 删除后根据当前状态重新加载数据
+      if (commentTable.isSearching) {
+        searchComments()
+      } else {
+        loadCommentList()
+      }
     })
   }).catch(() => {
     ElMessage.info('已取消删除')
   })
 }
 
-// 监听分页变化并加载数据
-watchEffect(() => apiAdminCommentList(commentTable.page, commentTable.size, data => {
-  commentTable.total = data.total
-  commentTable.data = data.list
-}))
+// 加载所有评论列表（默认情况）
+function loadCommentList() {
+  commentTable.isSearching = false
+  apiAdminCommentList(commentTable.page, commentTable.size, '', data => {
+    commentTable.total = data.total
+    commentTable.data = data.list
+  })
+}
 
+// 搜索功能
+function searchComments() {
+  commentTable.isSearching = true
+  commentTable.page = 1 // 搜索时重置到第一页
+  apiAdminCommentList(commentTable.page, commentTable.size, commentTable.searchContent, data => {
+    commentTable.total = data.total
+    commentTable.data = data.list
+  })
+}
+
+// 重置搜索
+function resetSearch() {
+  commentTable.searchContent = ''
+  commentTable.isSearching = false
+  commentTable.page = 1
+  loadCommentList()
+}
+
+// 分页变化时的处理函数
+function handlePageChange() {
+  if (commentTable.isSearching) {
+    searchComments()
+  } else {
+    loadCommentList()
+  }
+}
+
+// 大小变化时的处理函数
+function handleSizeChange() {
+  commentTable.page = 1 // 重置到第一页
+  if (commentTable.isSearching) {
+    searchComments()
+  } else {
+    loadCommentList()
+  }
+}
+
+// 默认加载所有数据
+loadCommentList()
 </script>
 
 <template>
@@ -98,6 +143,18 @@ watchEffect(() => apiAdminCommentList(commentTable.page, commentTable.size, data
     </div>
     <div class="desc">
       在这里管理平台的所有讨论内容
+    </div>
+    <!-- 添加搜索区域 -->
+    <div class="search-area" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+      <el-input
+          v-model="commentTable.searchContent"
+          placeholder="请输入评论内容进行搜索"
+          clearable
+          style="width: 300px"
+          @keyup.enter="searchComments"
+      />
+      <el-button type="primary" :icon="Search" @click="searchComments">搜索</el-button>
+      <el-button @click="resetSearch">重置</el-button>
     </div>
     <el-table :data="commentTable.data" height="600">
       <el-table-column prop="id" label="评论编号" width="120" />
@@ -131,6 +188,8 @@ watchEffect(() => apiAdminCommentList(commentTable.page, commentTable.size, data
           v-model:current-page="commentTable.page"
           v-model:page-size="commentTable.size"
           layout="total, sizes, prev, pager, next, jumper"
+          @current-change="handlePageChange"
+          @size-change="handleSizeChange"
       />
     </div>
 

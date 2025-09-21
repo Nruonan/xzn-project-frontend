@@ -1,12 +1,12 @@
 <script setup>
-import {Document, Delete, Refresh} from "@element-plus/icons-vue";
+import {Document, Delete, EditPen, View, Search} from "@element-plus/icons-vue";
 import {
   apiAdminOrderDelete,
   apiAdminOrderDetail,
   apiAdminOrderList,
   apiAdminOrderUpdate
 } from "@/net/api/ticket.js";
-import {reactive, watchEffect} from "vue";
+import {reactive} from "vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 
 const editor = reactive({
@@ -21,7 +21,9 @@ const orderTable = reactive({
   page : 1,
   size: 10,
   total: 0,
-  data: []
+  data: [],
+  searchTid: '', // 添加搜索神券ID字段
+  isSearching: false // 添加搜索状态标识
 })
 
 // 打开详情查看
@@ -74,21 +76,66 @@ function deleteOrder(id){
   ).then(() => {
     apiAdminOrderDelete(id, () => {
       ElMessage.success('删除成功!')
-      apiAdminOrderList(orderTable.page, orderTable.size, data => {
-        orderTable.total = data.total
-        orderTable.data = data.list
-      });
+      // 删除后根据当前状态重新加载数据
+      if (orderTable.isSearching) {
+        searchOrders()
+      } else {
+        loadOrderList()
+      }
     })
   }).catch(() => {
     ElMessage.info('已取消删除');
   });
 }
 
-watchEffect(() => apiAdminOrderList(orderTable.page, orderTable.size, data => {
-  orderTable.total = data.total
-  orderTable.data = data.list
-}))
+// 加载所有订单列表（默认情况）
+function loadOrderList() {
+  orderTable.isSearching = false
+  apiAdminOrderList(orderTable.page, orderTable.size, '', data => {
+    orderTable.total = data.total
+    orderTable.data = data.list
+  })
+}
 
+// 搜索功能
+function searchOrders() {
+  orderTable.isSearching = true
+  orderTable.page = 1 // 搜索时重置到第一页
+  apiAdminOrderList(orderTable.page, orderTable.size, orderTable.searchTid, data => {
+    orderTable.total = data.total
+    orderTable.data = data.list
+  })
+}
+
+// 重置搜索
+function resetSearch() {
+  orderTable.searchTid = ''
+  orderTable.isSearching = false
+  orderTable.page = 1
+  loadOrderList()
+}
+
+// 分页变化时的处理函数
+function handlePageChange() {
+  if (orderTable.isSearching) {
+    searchOrders()
+  } else {
+    loadOrderList()
+  }
+}
+
+// 大小变化时的处理函数
+function handleSizeChange() {
+  orderTable.page = 1 // 重置到第一页
+  if (orderTable.isSearching) {
+    searchOrders()
+  } else {
+    loadOrderList()
+  }
+}
+
+// 默认加载所有数据
+loadOrderList()
 </script>
 
 <template>
@@ -99,6 +146,18 @@ watchEffect(() => apiAdminOrderList(orderTable.page, orderTable.size, data => {
     </div>
     <div class="desc">
       在这里管理平台的所有订单信息
+    </div>
+    <!-- 添加搜索区域 -->
+    <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
+      <el-input
+        v-model="orderTable.searchTid"
+        placeholder="请输入神券ID进行搜索"
+        clearable
+        style="width: 300px"
+        @keyup.enter="searchOrders"
+      />
+      <el-button type="primary" :icon="Search" @click="searchOrders">搜索</el-button>
+      <el-button @click="resetSearch">重置</el-button>
     </div>
     <el-table :data="orderTable.data" height="500">
       <el-table-column prop="id" label="订单编号" width="220"/>
@@ -134,6 +193,8 @@ watchEffect(() => apiAdminOrderList(orderTable.page, orderTable.size, data => {
       </el-table-column>
       <el-table-column label="操作" align="center">
         <template #default="{ row }">
+          <el-button type="primary" size="small" :icon="View"
+                     @click="openOrderDetail(row)">查看</el-button>
           <el-button type="success" size="small" :icon="EditPen"
                      @click="openOrderEditor(row)">编辑</el-button>
           <el-button type="danger" size="small" :icon="Delete"
@@ -145,7 +206,9 @@ watchEffect(() => apiAdminOrderList(orderTable.page, orderTable.size, data => {
       <el-pagination :total="orderTable.total"
                      v-model:current-page="orderTable.page"
                      v-model:page-size="orderTable.size"
-                     layout="total, sizes, prev, pager, next, jumper"/>
+                     layout="total, sizes, prev, pager, next, jumper"
+                     @current-change="handlePageChange"
+                     @size-change="handleSizeChange"/>
     </div>
     <!-- 订单详情/编辑抽屉 -->
     <el-drawer v-model="editor.display">

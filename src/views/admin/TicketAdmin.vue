@@ -1,7 +1,7 @@
 <script setup>
-import {EditPen, Document, Delete, Plus} from "@element-plus/icons-vue";
+import {EditPen, Document, Delete, Plus, View, Search} from "@element-plus/icons-vue";
 import {apiAdminTicketList, apiAdminTicketDetail, apiAdminTicketUpdate, apiAdminTicketRemove, apiAdminTicketAdd} from "@/net/api/ticket.js";
-import {reactive, watchEffect} from "vue";
+import {reactive} from "vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 
 const editor = reactive({
@@ -9,20 +9,24 @@ const editor = reactive({
   display: false,
   temp: {},
   loading: false,
-  isAdd: false // 区分是新增还是编辑
+  isAdd: false, // 区分是新增还是编辑
+  isDetail: false // 区分是查看详情还是编辑
 })
 
 const ticketTable = reactive({
   page : 1,
   size: 10,
   total: 0,
-  data: []
+  data: [],
+  searchDesc: '', // 添加搜索描述字段
+  isSearching: false // 添加搜索状态标识
 })
 
 // 打开编辑器（新增）
 function openAddEditor() {
   editor.id = 0
   editor.isAdd = true
+  editor.isDetail = false
   editor.display = true
   editor.loading = false
   // 初始化默认值
@@ -42,6 +46,20 @@ function openAddEditor() {
 function openTicketEditor(ticket) {
   editor.id = ticket.id
   editor.isAdd = false
+  editor.isDetail = false
+  editor.display = true
+  editor.loading = true
+  apiAdminTicketDetail(editor.id, data => {
+    editor.temp = { ...data, ...ticket }
+    editor.loading = false
+  })
+}
+
+// 打开详情查看
+function openTicketDetail(ticket) {
+  editor.id = ticket.id
+  editor.isAdd = false
+  editor.isDetail = true
   editor.display = true
   editor.loading = true
   apiAdminTicketDetail(editor.id, data => {
@@ -68,24 +86,28 @@ function validDateType(type){
 
 // 保存神券信息（新增或更新）
 function saveTicketDetail(){
-  editor.display = false
-  if(editor.isAdd) {
-    // 新增
-    apiAdminTicketAdd(editor.temp, () => {
-      ElMessage.success('神券添加成功')
-      // 重新加载列表
-      apiAdminTicketList(ticketTable.page, ticketTable.size, data => {
-        ticketTable.total = data.total
-        ticketTable.data = data.list
+  // 只有在新增或编辑模式下才能保存
+  if (!editor.isDetail) {
+    editor.display = false
+    if(editor.isAdd) {
+      // 新增
+      apiAdminTicketAdd(editor.temp, () => {
+        ElMessage.success('神券添加成功')
+        // 重新加载列表
+        if (ticketTable.isSearching) {
+          searchTickets()
+        } else {
+          loadTicketList()
+        }
       })
-    })
-  } else {
-    // 编辑
-    apiAdminTicketUpdate(editor.temp, () => {
-      const ticket = ticketTable.data.find(ticket => ticket.id === editor.id)
-      Object.assign(ticket, editor.temp)
-      ElMessage.success('数据保存成功')
-    })
+    } else {
+      // 编辑
+      apiAdminTicketUpdate(editor.temp, () => {
+        const ticket = ticketTable.data.find(ticket => ticket.id === editor.id)
+        Object.assign(ticket, editor.temp)
+        ElMessage.success('数据保存成功')
+      })
+    }
   }
 }
 
@@ -101,21 +123,65 @@ function deleteTicket(id){
   ).then(() => {
     apiAdminTicketRemove(id, () => {
       ElMessage.success('删除成功!')
-      apiAdminTicketList(ticketTable.page, ticketTable.size, data => {
-        ticketTable.total = data.total
-        ticketTable.data = data.list
-      });
+      if (ticketTable.isSearching) {
+        searchTickets()
+      } else {
+        loadTicketList()
+      }
     })
   }).catch(() => {
     ElMessage.info('已取消删除');
   });
 }
 
-watchEffect(() => apiAdminTicketList(ticketTable.page, ticketTable.size, data => {
-  ticketTable.total = data.total
-  ticketTable.data = data.list
-}))
+// 加载所有神券列表（默认情况）
+function loadTicketList() {
+  ticketTable.isSearching = false
+  apiAdminTicketList(ticketTable.page, ticketTable.size, '', data => {
+    ticketTable.total = data.total
+    ticketTable.data = data.list
+  })
+}
 
+// 搜索功能
+function searchTickets() {
+  ticketTable.isSearching = true
+  ticketTable.page = 1 // 搜索时重置到第一页
+  apiAdminTicketList(ticketTable.page, ticketTable.size, ticketTable.searchDesc, data => {
+    ticketTable.total = data.total
+    ticketTable.data = data.list
+  })
+}
+
+// 重置搜索
+function resetSearch() {
+  ticketTable.searchDesc = ''
+  ticketTable.isSearching = false
+  ticketTable.page = 1
+  loadTicketList()
+}
+
+// 分页变化时的处理函数
+function handlePageChange() {
+  if (ticketTable.isSearching) {
+    searchTickets()
+  } else {
+    loadTicketList()
+  }
+}
+
+// 大小变化时的处理函数
+function handleSizeChange() {
+  ticketTable.page = 1 // 重置到第一页
+  if (ticketTable.isSearching) {
+    searchTickets()
+  } else {
+    loadTicketList()
+  }
+}
+
+// 默认加载所有数据
+loadTicketList()
 </script>
 
 <template>
@@ -127,8 +193,18 @@ watchEffect(() => apiAdminTicketList(ticketTable.page, ticketTable.size, data =>
     <div class="desc">
       在这里管理平台的所有神券，包括神券信息、价格和有效期设置
     </div>
-    <div style="margin-bottom: 15px">
-      <el-button type="primary" :icon="Plus" @click="openAddEditor">新增神券</el-button>
+    <!-- 添加搜索区域 -->
+    <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
+      <el-input
+        v-model="ticketTable.searchDesc"
+        placeholder="请输入神券描述进行搜索"
+        clearable
+        style="width: 300px"
+        @keyup.enter="searchTickets"
+      />
+      <el-button type="primary" :icon="Search" @click="searchTickets">搜索</el-button>
+      <el-button @click="resetSearch">重置</el-button>
+      <el-button type="primary" :icon="Plus" @click="openAddEditor" style="margin-left: auto;">新增神券</el-button>
     </div>
     <el-table :data="ticketTable.data" height="500">
       <el-table-column prop="id" label="编号" width="80"/>
@@ -176,6 +252,8 @@ watchEffect(() => apiAdminTicketList(ticketTable.page, ticketTable.size, data =>
       </el-table-column>
       <el-table-column label="操作" align="center">
         <template #default="{ row }">
+          <el-button type="primary" size="small" :icon="View"
+                     @click="openTicketDetail(row)">查看</el-button>
           <el-button type="success" size="small" :icon="EditPen"
                      @click="openTicketEditor(row)">编辑</el-button>
           <el-button type="danger" size="small" :icon="Delete"
@@ -187,18 +265,20 @@ watchEffect(() => apiAdminTicketList(ticketTable.page, ticketTable.size, data =>
       <el-pagination :total="ticketTable.total"
                      v-model:current-page="ticketTable.page"
                      v-model:page-size="ticketTable.size"
-                     layout="total, sizes, prev, pager, next, jumper"/>
+                     layout="total, sizes, prev, pager, next, jumper"
+                     @current-change="handlePageChange"
+                     @size-change="handleSizeChange"/>
     </div>
     <el-drawer v-model="editor.display">
       <template #header>
         <div>
           <div style="font-weight: bold">
-            <el-icon><EditPen/></el-icon> {{ editor.isAdd ? '新增神券' : '编辑神券信息' }}
+            <el-icon><EditPen/></el-icon> {{ editor.isDetail ? '查看神券信息' : (editor.isAdd ? '新增神券' : '编辑神券信息') }}
           </div>
-          <div style="font-size: 13px">{{ editor.isAdd ? '填写神券信息后点击保存按钮' : '编辑完成后请点击下方保存按钮' }}</div>
+          <div style="font-size: 13px">{{ editor.isDetail ? '神券详细信息' : (editor.isAdd ? '填写神券信息后点击保存按钮' : '编辑完成后请点击下方保存按钮') }}</div>
         </div>
       </template>
-      <el-form label-position="top">
+      <el-form label-position="top" :disabled="editor.isDetail">
         <el-form-item label="神券名称">
           <el-input v-model="editor.temp.name"/>
         </el-form-item>
@@ -241,8 +321,8 @@ watchEffect(() => apiAdminTicketList(ticketTable.page, ticketTable.size, data =>
       </el-form>
       <template #footer>
         <div style="text-align: center">
-          <el-button type="success" @click="saveTicketDetail">保存</el-button>
-          <el-button type="info" @click="editor.display = false">取消</el-button>
+          <el-button type="success" @click="saveTicketDetail" v-if="!editor.isDetail">保存</el-button>
+          <el-button type="info" @click="editor.display = false">{{ editor.isDetail ? '关闭' : '取消' }}</el-button>
         </div>
       </template>
     </el-drawer>
