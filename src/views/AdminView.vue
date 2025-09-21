@@ -24,9 +24,10 @@ const adminMenu = [
     title: '校园论坛管理', icon: Location, sub:[
       {title: '用户管理', icon: User, index: '/admin/user'},
       {title: '帖子广场管理', icon: ChatDotSquare, index: '/admin/forum'},
+      {title: '帖子评论管理', icon: Notification, index: '/admin/comment'},
       {title: '神券抢购管理', icon: Money, index: '/admin/ticket'},
       {title: '神券订单管理', icon: Bell, index: '/admin/order'},
-      {title: '校园活动管理', icon: Notification},
+
       {title: '放松一刻管理', icon: ToiletPaper},
     ]
   }

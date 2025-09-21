@@ -91,3 +91,14 @@ export const apiTopicUpdate = (data, success) =>
 
 export const apiTopicRemove = (id, success) =>
     get(`/api/admin/forum/remove?id=${id}`, success)
+
+export const apiAdminCommentList = (page, size, success) =>
+    get(`/api/admin/forum/comment/list?page=${page}&size=${size}`, success)
+export const apiAdminCommentDetail = (id, success) =>
+    get(`/api/admin/forum/comment/detail?id=${id}`, success)
+
+export const apiAdminCommentUpdate = (data, success) =>
+    post('/api/admin/forum/comment/update', data, success)
+
+export const apiAdminCommentRemove = (id, success) =>
+    get(`/api/admin/forum/comment/remove?id=${id}`, success)
