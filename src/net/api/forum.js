@@ -54,8 +54,6 @@ export const apiAccountFollow = (id) => {
 
 export const apiForumTopTopics = (success) =>
     get('/api/forum/top-topic', success)
-export const apiForumHotTopics = (success) =>
-    get('/api/forum/hot-topic', success)
 
 export const apiCommonData = (success) =>
     get('/api/common', success)

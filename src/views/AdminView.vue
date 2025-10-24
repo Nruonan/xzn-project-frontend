@@ -27,8 +27,8 @@ const adminMenu = [
       {title: '帖子评论管理', icon: Notification, index: '/admin/comment'},
       {title: '神券抢购管理', icon: Money, index: '/admin/ticket'},
       {title: '神券订单管理', icon: Bell, index: '/admin/order'},
-
-      {title: '放松一刻管理', icon: ToiletPaper},
+      {title: '公告管理', icon: Document, index: '/admin/notice'},
+      {title: '放松一刻管理', icon: ToiletPaper, index: '/admin/relax'},
     ]
   }
 ]
