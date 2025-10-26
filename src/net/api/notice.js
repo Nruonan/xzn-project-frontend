@@ -45,9 +45,12 @@ export const getNoticeDetail = (id, success) => {
 };
 
 /**
- * 获取置顶公告列表
- * @param limit 数量限制，默认为5
+ * 获取公告列表
  */
-export const getTopNotices = (limit = 1, success) => {
-  return get(`/api/notice/top?limit=${limit}`, success);
+export const getNoticeOne = (success) => {
+  return get(`/api/notice/one`, success);
+};
+
+export const getApiNoticeDetail = (id, success) => {
+  return get(`/api/notice/detail?id=${id}`, success);
 };

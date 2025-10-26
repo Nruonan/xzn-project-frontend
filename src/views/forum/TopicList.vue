@@ -28,12 +28,12 @@ import TopicCollectList from "../../components/TopicCollectList.vue";
 import {
   apiCommonData,
   apiCount,
-  apiForumHotTopics,
   apiForumTopicList,
   apiForumTopicListByFollow,
   apiForumTopTopics,
   apiForumWeather
 } from "@/net/api/forum.js";
+import {getNoticeOne} from "@/net/api/notice.js";
 
 const store = useStore()
 const weather = reactive({
@@ -49,7 +49,6 @@ const topics = reactive({
   end: false,
   top: []
 })
-const hotTopics = ref(0)
 let common = reactive({
   data: {
     browser: '',
@@ -59,6 +58,14 @@ let common = reactive({
 const count = reactive({
   uv: 0,
   dau: 0
+})
+
+let notice = reactive({
+  username : '',
+  title : '',
+  content : '',
+  publishTime: '',
+  id : 0
 })
 const collects = ref(false)
 const editor = ref(false)
@@ -136,7 +143,9 @@ onMounted(() => {
   apiCount(count)
   apiForumTopTopics(data => topics.top = data)
   apiCommonData(data => common.data = data)
-  apiForumHotTopics(data => hotTopics.value = data)
+  getNoticeOne(data => {
+    Object.assign(notice, data)
+  })
 })
 </script>
 
@@ -253,22 +262,26 @@ onMounted(() => {
             <el-icon>
               <CollectionTag/>
             </el-icon>
-            <span style="margin-left: 5px;">论坛热帖</span>
+            <span style="margin-left: 5px;">校园公告</span>
           </div>
           <el-divider style="margin: 10px 0;"/>
           <ul style="list-style: none; padding: 0;">
-            <li v-for="(item, index) in hotTopics" :key="index" class="hot-topic-item">
-              <div style="display: flex; align-items: center; margin-top: 7px">
-                <topic-tag :type="item.type" style="margin-right: 10px;"></topic-tag>
-                <el-link style="font-size: 14px; color: #333;"
-                         @click="router.push(`/index/topic-detail/${item.id}`)">
-                  {{ item.title.length > 10 ? item.title.substring(0, 10) + '...' : item.title }}
-                </el-link>
+            <li v-if="notice && notice.title" style="margin-bottom: 5px;">
+              <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                <strong style="margin-left: 5px; font-weight: bold;">标题：{{ notice.title }}</strong>
               </div>
+              <div style="margin-left: 5px; font-size: 14px;">
+                作者：{{ notice.username }}
+              </div>
+              <div style="margin-left: 5px; font-size: 14px;">
+                内容：{{ notice.content.length > 100 ? notice.content.substring(0, 100) + '...' : notice.content }}
+              </div>
+            </li>
+            <li v-else style="margin-bottom: 5px;">
+              暂无公告
             </li>
           </ul>
         </light-card>
-
         <light-card style="margin-top: 10px">
           <div style="font-weight: bold">
             <el-icon>
@@ -276,7 +289,35 @@ onMounted(() => {
             </el-icon>
             天气信息
           </div>
-          <Weather :data="weather"/>
+          <div style="height: 160px" v-loading="!weather.success"
+               element-loading-text="正在加载天气信息...">
+            <div style="display: flex; justify-content: space-between;margin: 10px 20px"
+                 v-if="weather.success">
+              <div style="font-size: 45px;" >
+                <i :class="`qi-${weather.now.icon}-fill`"></i>
+              </div>
+              <div style="font-weight: bold;text-align: center">
+                <div style="font-size: 25px">{{weather.now.temp}}</div>
+                <div style="font-size: 15px">{{weather.now.text}}</div>
+              </div>
+              <div style="margin-top: 13px;" >
+                <div style="font-size: 15px">{{`${weather.location.country} ${weather.location.adm1}`}}</div>
+                <div style="font-size: 14px; color: grey">{{`${weather.location.adm2} ${weather.location.name}区`}}</div>
+              </div>
+            </div>
+            <el-divider style="margin: 5px 0"></el-divider>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); text-align: center; margin-top: 2px">
+              <div v-for="item in weather.hourly">
+                <div style="font-size: 13px; margin-top: 5px">{{ new Date(item.fxTime).getHours() }}时</div>
+                <div style="font-size: 23px; margin-top: 2px">
+                  <i :class="`qi-${item.icon}`"></i>
+                </div>
+                <div style="font-size: 12px; margin-top: -0px"> <!-- 修改这里 -->
+                  {{ item.temp }}℃
+                </div>
+              </div>
+            </div>
+          </div>
         </light-card>
         <light-card element-loading-text="正在加载数据..." style="margin-top: 10px">
           <div class="info-text">

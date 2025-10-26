@@ -161,22 +161,22 @@ loadOrderList()
     </div>
     <el-table :data="orderTable.data" height="500">
       <el-table-column prop="id" label="订单编号" width="220"/>
-      <el-table-column label="用户ID" width="200" align="center">
+      <el-table-column label="用户ID" width="80" align="center">
         <template #default="{ row }">
           {{ row.uid }}
         </template>
       </el-table-column>
-      <el-table-column label="神券ID" width="200" align="center">
+      <el-table-column label="神券ID" width="80" align="center">
         <template #default="{ row }">
           {{ row.tid }}
         </template>
       </el-table-column>
-      <el-table-column label="购买数量" width="200" align="center">
+      <el-table-column label="购买数量" width="80" align="center">
         <template #default="{ row }">
           {{ row.count }}
         </template>
       </el-table-column>
-      <el-table-column label="订单金额" width="100" align="center">
+      <el-table-column label="订单金额" width="80" align="center">
         <template #default="{ row }">
           {{ row.price }}
         </template>

@@ -9,6 +9,7 @@ import {
 } from "@/net/api/notice.js"
 import { reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import axios from "axios";
 
 const editor = reactive({
   id: 0,
@@ -49,7 +50,7 @@ function openNoticeEditor(notice) {
   editor.display = true
   editor.loading = true
   getNoticeDetail(editor.id, data => {
-    editor.temp = { ...data }
+    editor.temp = data;
     editor.loading = false
   })
 }
@@ -191,14 +192,14 @@ onMounted(() => {
     </div>
     <el-table :data="noticeTable.data" height="600">
       <el-table-column prop="id" label="公告编号" width="120" />
-      <el-table-column prop="title" label="公告标题" width="300" >
+      <el-table-column prop="title" label="公告标题" width="150" >
         <template #default="{ row }">
           <div class="table-post-title">
             {{ row.title.length > 20 ? row.title.substring(0, 20) + '...' : row.title }}
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="content" label="公告内容" width="600" >
+      <el-table-column prop="content" label="公告内容" width="550" >
         <template #default="{ row }">
           <div class="table-post-content">
             {{ row.content.length > 50 ? row.content.substring(0, 50) + '...' : row.content }}
@@ -287,6 +288,23 @@ onMounted(() => {
               :disabled="editor.isDetail"
           />
         </el-form-item>
+        <el-form-item label="发布者信息"  v-show="!editor.isCreate">
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="用户名">
+                <el-input v-model="editor.temp.username" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="头像">
+                <el-avatar
+                    :src="`${axios.defaults.baseURL}/images${editor.temp.avatar}` || 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'"
+                    size="large"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form-item>
       </el-form>
       <template #footer>
         <div style="text-align: center">
@@ -302,13 +320,11 @@ onMounted(() => {
 .notice-admin {
   .title {
     font-weight: bold;
-    font-size: 20px;
-    margin-bottom: 10px;
   }
 
   .desc {
-    color: #888;
-    font-size: 14px;
+    color: #bababa;
+    font-size: 13px;
     margin-bottom: 20px;
   }
 

@@ -16,8 +16,9 @@
                   <el-select :teleported="false"  v-model="search.type" style="width: 120px">
                     <el-option value="1" label="帖子广场"/>
                     <el-option value="2" label="神券抢购"/>
-                    <el-option value="3" label="校园活动"/>
-                    <el-option value="4" label="失物招领"/>
+                    <el-option value="3" label="校园公告"/>
+                    <el-option value="4" label="校园活动"/>
+                    <el-option value="5" label="失物招领"/>
                   </el-select>
                 </div>
 
@@ -150,9 +151,9 @@ let userMenu = [
     title: '校园论坛', icon: Location, sub: [
       { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
       { title: '神券抢购', icon: Money, index: '/index/market' },
-      { title: '失物招领（未开发）', icon: Bell },
+      { title: '校园公告', icon: Document, index: '/index/notice' },
       { title: '校园活动（未开发）', icon: Notification },
-      { title: '放松一刻（未开发）', icon: ToiletPaper }
+      { title: '失物招领（未开发）', icon: Bell }
     ]
   }, {
     title: '个人设置', icon: Operation, sub: [

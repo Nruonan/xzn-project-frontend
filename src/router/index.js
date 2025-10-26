@@ -75,6 +75,23 @@ const router = createRouter({
           ]
         } ,
         {
+          path: 'notice',
+          name: 'notice',
+          component: () => import('../views/notice/Notice.vue'),
+          children: [
+            {
+              path: '',
+              name: 'notice-list',
+              component: () => import('../views/notice/NoticeList.vue')
+            },
+            {
+              path: 'detail/:id',
+              name: 'notice-detail',
+              component: () => import('../views/notice/NoticeDetail.vue')
+            }
+          ]
+        },
+        {
           path: 'relax',
           name: 'relax',
           component: () => import('../views/relax/Relax.vue'),
