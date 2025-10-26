@@ -74,23 +74,44 @@
                   router
                   :default-active="$route.path"
                   :default-openeds="['1','2','3']"
-                  style="min-height: calc(100vh - 52px)">
+              >
                 <el-sub-menu :index="(index + 1).toString()"
-                             v-for="(menu, index) in userMenu">
+                             v-for="(menu, index) in userMenu" :key="index">
                   <template #title>
                     <el-icon>
                       <component :is="menu.icon"/>
                     </el-icon>
                     <span><b>{{ menu.title }}</b></span>
                   </template>
-                  <el-menu-item :index="subMenu.index" v-for="subMenu in menu.sub">
-                    <template #title>
-                      <el-icon>
-                        <component :is="subMenu.icon"/>
-                      </el-icon>
-                      {{ subMenu.title }}
-                    </template>
-                  </el-menu-item>
+                  <template v-for="subMenu in menu.sub" :key="subMenu.index">
+                    <!-- 检查是否有子菜单 -->
+                    <el-sub-menu v-if="subMenu.sub && subMenu.sub.length > 0" :index="subMenu.index">
+                      <template #title>
+                        <el-icon>
+                          <component :is="subMenu.icon"/>
+                        </el-icon>
+                        <span>{{ subMenu.title }}</span>
+                      </template>
+                      <!-- 渲染第三级菜单 -->
+                      <el-menu-item v-for="subItem in subMenu.sub" :index="subItem.index" :key="subItem.index">
+                        <template #title>
+                          <el-icon>
+                            <component :is="subItem.icon"/>
+                          </el-icon>
+                          <span>{{ subItem.title }}</span>
+                        </template>
+                      </el-menu-item>
+                    </el-sub-menu>
+                    <!-- 没有子菜单则渲染为普通菜单项 -->
+                    <el-menu-item v-else :index="subMenu.index">
+                      <template #title>
+                        <el-icon>
+                          <component :is="subMenu.icon"/>
+                        </el-icon>
+                        <span>{{ subMenu.title }}</span>
+                      </template>
+                    </el-menu-item>
+                  </template>
                 </el-sub-menu>
               </el-menu>
             </el-scrollbar>
@@ -150,7 +171,15 @@ let userMenu = [
   {
     title: '校园论坛', icon: Location, sub: [
       { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
-      { title: '神券抢购', icon: Money, index: '/index/market' },
+      {
+        title: '神券抢购',
+        icon: Money,
+        index: '/index/market',
+        sub: [
+          { title: '神券列表', icon: Goods, index: '/index/market' },
+          { title: '订单详情', icon: Files, index: '/index/market/ticket/orders' }
+        ]
+      },
       { title: '校园公告', icon: Document, index: '/index/notice' },
       { title: '校园活动（未开发）', icon: Notification },
       { title: '失物招领（未开发）', icon: Bell }
