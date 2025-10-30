@@ -8,10 +8,7 @@ export const apiTicketTypes = () => {
     })
 }
 
-export const apiUserRemind = (success) =>
-    get('/api/user/privacy', success)
-export const apiUserRemindSave = (data,success) =>
-    post('/api/user/save-privacy', data, success)
+
 
 export const apiLoadTicketList = (page,type,name,success) =>
     get(`/api/ticket/list?page=${page}&type=${type}&name=${name.value}`, success)
