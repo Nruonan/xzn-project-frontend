@@ -5,13 +5,12 @@ import {onMounted, reactive, ref} from "vue";
 import {useStore} from "@/store/index.js";
 import router from "../../router/index.js";
 import {ElMessage} from "element-plus";
-import {apiLoadTicketList, apiUserRemind, apiUserRemindSave} from "@/net/api/ticket.js";
+import {apiLoadTicketList} from "@/net/api/ticket.js";
 
 
 const store = useStore()
 const name = ref('')
 const type = ref('全部')
-const remind = ref()
 
 const tickets = reactive({
   list:[],
@@ -21,25 +20,6 @@ const tickets = reactive({
 })
 const loading = ref(false)
 const saving = ref(true)
-
-
-
-function savePrivacy(type, status){
-  saving.value = true
-  apiUserRemindSave({
-    type:type,
-    status: status
-  },() => {
-    if (status === true){
-      ElMessage.success('预约成功！可在消息提醒等候新的神券通知！')
-    }else{
-      ElMessage.success('取消成功，欢迎下次预约！')
-    }
-
-    saving.value = false
-  })
-}
-
 function SearchTicket(){
   loading.value = false
   tickets.page = 1;
@@ -65,12 +45,7 @@ function loadTickets(page){
   loading.value = true
 }
 loadTickets(1)
-onMounted(() => {
-  apiUserRemind(data=>{
-    remind.value = data.remind
-    saving.value = false
-  })
-})
+
 </script>
 
 <template>
@@ -100,12 +75,6 @@ onMounted(() => {
             <el-button style="width: 50px" @click="name=''; type=''" plain>
               重置
             </el-button>
-          </div>
-          <div style="text-align: right; margin-top: -35px">
-            <el-checkbox style="margin-right: 20px" @change="savePrivacy('remind', remind)" v-model="remind">
-              预约提醒
-            </el-checkbox>
-            <el-button :icon="ShoppingTrolley" type="info" plain @click="router.push('/index/market/ticket/orders')">查看订单</el-button>
           </div>
       </light-card>
       <light-card style="max-height: 700px;margin-top: 15px;border-radius: 10px" v-loading="!loading">
