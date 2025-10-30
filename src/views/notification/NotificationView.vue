@@ -104,7 +104,7 @@ function deleteAllNotification() {
 
 <style scoped>
 .notification-main {
-  width: 1200px;
+  width: 1000px;
   max-width: 95%;
   margin: 20px auto;
 }

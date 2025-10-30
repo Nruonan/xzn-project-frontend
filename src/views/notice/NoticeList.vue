@@ -49,7 +49,7 @@ onMounted(() => {
              @mouseenter="event => event.currentTarget.style.backgroundColor = '#f5f7fa'"
              @mouseleave="event => event.currentTarget.style.backgroundColor = 'transparent'">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 18px; font-weight: bold; color: #333;">
+            <div style="font-size: 18px; font-weight: bold; color: #333; flex: 1; text-align: center;">
               {{ notice.title }}
             </div>
             <div style="font-size: 14px; color: #999;">
