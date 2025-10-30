@@ -1,5 +1,4 @@
 <template>
-
     <div class="main-content" v-loading="loading" element-loading-text="正在进入，请稍后...">
       <el-container style="height: 100%" v-if="!loading">
         <el-header class="main-content-header">
@@ -37,33 +36,7 @@
           <user-info>
             <el-popover placement="bottom" :width="350" trigger="click"
                         popper-style="background-color:var(--el-popover-border-color);box-shadow: rgb(14 18 22 / 35%) 0px 10px 38px -10px, rgb(14 18 22 / 20%) 0px 10px 20px -15px; padding: 20px;">
-              <template #reference>
-                <el-badge is-dot :hidden="!notification.length">
-                  <div class="notification">
-                    <el-icon><Bell/></el-icon>
-                    <div style="font-size: 10px">消息</div>
-                  </div>
-                </el-badge>
-              </template>
-              <template #default>
-                <el-empty :image-size="80" description="暂时没有未读消息哦~" v-if="!notification.length"></el-empty>
-                <el-scrollbar :max-height="500" v-else>
-                  <light-card v-for="item in notification" class="notification-item"
-                              @click="confirmNotification(item.id,item.url)">
-                    <div>
-                      <el-tag size="small" :type="item.type">消息</el-tag>&nbsp;
-                      <span style="font-weight: bold">{{item.title}}</span>
-                    </div>
-                    <el-divider style="margin: 7px 0 3px 0"/>
-                    <div style="font-size: 13px;color: grey">
-                      {{item.content}}
-                    </div>
-                  </light-card>
-                  <div style="margin-top: 10px">
-                    <el-button size="small" type="info" :icon="Check" @click="deleteAllNotification" style="width: 100%" plain>清除全部未读消息</el-button>
-                  </div>
-                </el-scrollbar>
-              </template>
+
             </el-popover>
           </user-info>
         </el-header>
@@ -73,7 +46,7 @@
               <el-menu
                   router
                   :default-active="$route.path"
-                  :default-openeds="['1','2','3']"
+                  :default-openeds="['1','2','3','/index/market']"
               >
                 <el-sub-menu :index="(index + 1).toString()"
                              v-for="(menu, index) in userMenu" :key="index">
@@ -85,7 +58,12 @@
                   </template>
                   <template v-for="subMenu in menu.sub" :key="subMenu.index">
                     <!-- 检查是否有子菜单 -->
-                    <el-sub-menu v-if="subMenu.sub && subMenu.sub.length > 0" :index="subMenu.index">
+                    <!-- 修改这部分代码，添加 default-opened 属性 -->
+                    <el-sub-menu
+                        v-if="subMenu.sub && subMenu.sub.length > 0"
+                        :index="subMenu.index"
+                        :default-opened="true"
+                    >
                       <template #title>
                         <el-icon>
                           <component :is="subMenu.icon"/>
@@ -117,13 +95,13 @@
             </el-scrollbar>
           </el-aside>
           <el-main class="main-content-page">
-              <el-scrollbar style="height: calc(100vh - 55px)">
-                  <router-view v-slot="{ Component }">
-                    <transition name="el-fade-in-linear" mode="out-in">
-                      <component :is="Component" style="height: 100%"/>
-                    </transition>
-                  </router-view>
-              </el-scrollbar>
+            <el-scrollbar style="height: calc(100vh - 55px)">
+              <router-view v-slot="{ Component }">
+                <transition name="el-fade-in-linear" mode="out-in">
+                  <component :is="Component" style="height: 100%"/>
+                </transition>
+              </router-view>
+            </el-scrollbar>
           </el-main>
         </el-container>
       </el-container>
@@ -181,6 +159,7 @@ let userMenu = [
         ]
       },
       { title: '校园公告', icon: Document, index: '/index/notice' },
+      { title: '消息通知', icon: Bell, index: '/index/notification' },
       { title: '校园活动（未开发）', icon: Notification },
       { title: '失物招领（未开发）', icon: Bell }
     ]
@@ -324,9 +303,11 @@ function deleteAllNotification(){
 }
 :deep(.el-sub-menu__title) {
   position: relative;
-  margin: 5px 10px;
-  border-radius: 8px;
+  margin: 8px 15px; // 增大外边距
+  border-radius: 10px; // 稍微增大圆角
   transition: all 0.3s;
+  font-size: 16px;
+  padding: 15px 20px; // 增加内边距
 }
 
 :deep(.el-sub-menu__title:hover) {
@@ -337,9 +318,11 @@ function deleteAllNotification(){
 
 :deep(.el-menu-item) {
   position: relative;
-  margin: 2px 10px;
-  border-radius: 6px;
+  margin: 5px 15px; // 增大外边距
+  border-radius: 8px; // 稍微增大圆角
   transition: all 0.3s;
+  font-size: 15px;
+  padding: 12px 20px; // 增加内边距
 }
 
 :deep(.el-menu-item:hover) {
@@ -352,4 +335,5 @@ function deleteAllNotification(){
   background-color: var(--el-color-primary-light-9);
   color: var(--el-color-primary);
 }
+
 </style>

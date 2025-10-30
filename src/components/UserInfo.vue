@@ -48,7 +48,7 @@ const userLogout = function(){
           <el-icon><Operation /></el-icon>
           个人设置
         </el-dropdown-item>
-        <el-dropdown-item>
+        <el-dropdown-item @click="router.push('/index/notification')">
           <el-icon><Message/></el-icon>消息列表
         </el-dropdown-item>
         <el-dropdown-item @click="userLogout" divided>
