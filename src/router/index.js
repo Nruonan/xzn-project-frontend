@@ -54,7 +54,20 @@ const router = createRouter({
               path: 'notification',
               name: 'Notification',
               component: () => import('@/views/notification/NotificationView.vue')
-            }
+            },
+
+          ]
+        },
+        {
+          path: 'drafts',
+          name: 'drafts',
+          component: () => import('../views/Draft/Draft.vue'),
+          children: [
+            {
+              path: '',
+              name: 'draft-list',
+              component: () => import('../views/Draft/DraftList.vue')
+            },
           ]
         },
         {

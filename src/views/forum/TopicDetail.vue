@@ -80,7 +80,8 @@ function updateTopic(editor){
     id:tid,
     type: editor.type.id,
     title: editor.title,
-    content: editor.text
+    content: editor.text,
+    status: 1
   },() => {
     ElMessage.success('帖子内容更新成功!')
     edit.value = false

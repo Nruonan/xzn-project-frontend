@@ -149,6 +149,7 @@ let userMenu = [
   {
     title: '校园论坛', icon: Location, sub: [
       { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
+      { title: '草稿箱', icon: Document, index: '/index/drafts' },
       {
         title: '神券抢购',
         icon: Money,
@@ -171,6 +172,7 @@ let userMenu = [
     ]
   }
 ]
+
 const loading = inject('userLoading')
 
 

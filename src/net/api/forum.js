@@ -100,3 +100,9 @@ export const apiAdminCommentUpdate = (data, success) =>
 
 export const apiAdminCommentRemove = (id, success) =>
     get(`/api/admin/forum/comment/remove?id=${id}`, success)
+
+export const apiForumDrafts = (page, size, success) =>
+    get(`/api/forum/drafts?page=${page}&size=${size}`, success)
+
+export const apiForumDraftDelete = (id, success) =>
+    get(`/api/forum/draft/delete?id=${id}`, success)

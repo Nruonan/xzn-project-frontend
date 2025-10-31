@@ -38,9 +38,15 @@ const props = defineProps({
       apiForumTopicCreate({
         type: editor.type.id,
         title: editor.title,
-        content: editor.text
+        content: editor.text,
+        status: editor.status
       },()=>{
-        ElMessage.success('帖子发表成功！')
+        if (editor.status === 0) {
+          ElMessage.success('草稿已保存，请去草稿箱查看')
+        } else {
+          ElMessage.success('帖子发表成功！')
+
+        }
         success()
       })
     },
@@ -56,17 +62,29 @@ const editor =reactive({
   type: null,
   title: '',
   text: '',
+  status: 0,
   loading: false
 })
+
 function initEditor(){
-  if (props.defaultText){
+  // 检查是否有暂存的内容
+  const savedDraft = localStorage.getItem('topicDraft')
+  if (savedDraft) {
+    const draft = JSON.parse(savedDraft)
+    editor.title = draft.title
+    editor.type = findTypeById(draft.typeId.id)
+    editor.text = new Delta(draft.content)
+  } else if (props.defaultText){
+    editor.type = findTypeById(props.defaultType)
+    editor.title = props.defaultTitle
     editor.text = new Delta(JSON.parse(props.defaultText))
   }
   else{
+    editor.type = ""
+    editor.title = ""
+    editor.text = ""
     refEditor.value.setContents('','user')
   }
-  editor.title=props.defaultTitle
-  editor.type= findTypeById(props.defaultType)
 }
 
 function deltaToText(delta) {
@@ -76,7 +94,8 @@ function deltaToText(delta) {
     str += op.insert
   return str.replace(/\s/g,"")
 }
-function submitTopic(){
+// 提交成功后清除草稿
+function submitTopic(status){
   const text = deltaToText(editor.text)
   if (text.length > 20000){
     ElMessage.warning("字数超出限制，无法发布主题！");
@@ -94,7 +113,21 @@ function submitTopic(){
     ElMessage.warning("请选择一个合适的帖子类型！");
     return;
   }
-  props.submit(editor,() => emit('success'))
+  if (status === 0) {
+    const draft = {
+      title: editor.title,
+      typeId: editor.type ? editor.type : null,
+      content: editor.text,
+      timestamp: new Date().getTime()
+    }
+    localStorage.setItem('topicDraft', JSON.stringify(draft))
+  }
+  editor.status = status
+  props.submit(editor,() => {
+    // 提交成功后清除草稿
+    localStorage.removeItem('topicDraft')
+    emit('success')
+  })
 }
 const contentLength = computed(() => deltaToText(editor.text).length)
 
@@ -159,46 +192,48 @@ const editorOption = {
 </script>
 
 <template>
-    <el-drawer @open="initEditor" :model-value="show" direction="btt" :size="650" :close-on-click-modal="false" @close="emit('close')">
-      <template #header>
-        <div>
-          <div style="font-weight: bold">发表新的帖子</div>
-          <div style="font-size: 13px;color: grey;margin-top: 3px">发表内容之前，请遵守相关法律法规，不要出现粗口色情等不文明行为</div>
-        </div>
-      </template>
-      <div style="display: flex; gap: 10px">
-        <div style="width: 150px;" >
-          <el-select :teleported="false"  v-model="editor.type" value-key="id" :disabled="!store.forum.types.length" placeholder="请选择主题类型...">
-            <el-option  :key="item.id" :label="item.name"  v-for="item in store.forum.types.filter(type => type.id > 0 && type.id < 6)" :value="item">
-              <div>
-                <color-dot :color="item.color"/>
-                <span style="margin-left: 8px">{{item.name}}</span>
-              </div>
-            </el-option>
-          </el-select>
-        </div>
-        <div style="flex: 1 ">
-          <el-input v-model="editor.title" placeholder="请输入帖子标题" :prefix-icon="Document" style="height: 100%; width: 590px" maxlength="30"/>
-        </div>
+  <el-drawer @open="initEditor" :model-value="show" direction="btt" :size="700" :close-on-click-modal="false" @close="emit('close')">
+    <template #header>
+      <div>
+        <div style="font-weight: bold">发表新的帖子</div>
+        <div style="font-size: 13px;color: grey;margin-top: 3px">发表内容之前，请遵守相关法律法规，不要出现粗口色情等不文明行为</div>
       </div>
-      <div style="margin-top: 10px;font-size: 13px;color: grey">
-        <color-dot :color="editor.type ? editor.type.color : '#dedede'"/>
-        <span style="margin-left: 5px">{{editor.type ? editor.type.desc : '请在上方选择一个帖子类型'}}</span>
+    </template>
+    <div style="display: flex; gap: 10px">
+      <div style="width: 150px;" >
+        <el-select :teleported="false"  v-model="editor.type" value-key="id" :disabled="!store.forum.types.length" placeholder="请选择主题类型...">
+          <el-option  :key="item.id" :label="item.name"  v-for="item in store.forum.types.filter(type => type.id > 0 && type.id < 6)" :value="item">
+            <div>
+              <color-dot :color="item.color"/>
+              <span style="margin-left: 8px">{{item.name}}</span>
+            </div>
+          </el-option>
+        </el-select>
       </div>
-      <div style="margin-top: 10px; height: 440px;overflow: hidden; border-radius: 5px"
-           v-loading="editor.uploading"  element-loading-text="正在上传图片,请稍后..." >
-        <quill-editor ref="refEditor" v-model:content="editor.text" style="height: calc(100% - 45px)" placeholder="今天想分享什么呢？"
-                content-type="delta" :options="editorOption"/>
+      <div style="flex: 1 ">
+        <el-input v-model="editor.title" placeholder="请输入帖子标题" :prefix-icon="Document" style="height: 100%; width: 590px" maxlength="30"/>
       </div>
-      <div style="display: flex; margin-top: 5px; justify-content: space-between">
-        <div style="font-size: 13px; color: grey">
-          当前字数 {{contentLength}}（最大支持20000字）
-        </div>
-        <div>
-          <el-button type="success" :icon="Check" @click="submitTopic">{{submitButton}}</el-button>
-        </div>
+    </div>
+    <div style="margin-top: 10px;font-size: 13px;color: grey">
+      <color-dot :color="editor.type ? editor.type.color : '#dedede'"/>
+      <span style="margin-left: 5px">{{editor.type ? editor.type.desc : '请在上方选择一个帖子类型'}}</span>
+    </div>
+    <div style="margin-top: 10px; height: 440px;overflow: hidden; border-radius: 5px"
+         v-loading="editor.uploading"  element-loading-text="正在上传图片,请稍后..." >
+      <quill-editor ref="refEditor" v-model:content="editor.text" style="height: calc(100% - 45px)" placeholder="今天想分享什么呢？"
+                    content-type="delta" :options="editorOption"/>
+    </div>
+    <div style="display: flex; margin-top: 5px; justify-content: space-between">
+      <div style="font-size: 13px; color: grey">
+        当前字数 {{contentLength}}（最大支持20000字）
       </div>
-    </el-drawer>
+      <div>
+        <!-- 添加暂存按钮 -->
+        <el-button @click="submitTopic(0)" style="margin-right: 10px;">暂存</el-button>
+        <el-button type="success" :icon="Check" @click="submitTopic(1)">{{submitButton}}</el-button>
+      </div>
+    </div>
+  </el-drawer>
 </template>
 
 <style scoped>
