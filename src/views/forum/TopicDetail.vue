@@ -71,8 +71,14 @@ function convertToHtml(content){
   return converter.convert()
 }
 
-function interact(type,message){
-  apiForumInteract(tid,type,topic,message)
+function interact(type){
+  apiForumInteract(tid,type,topic, data => {
+     if (data.length > 4) {
+       ElMessage.error(data)
+     } else {
+       ElMessage.success(data)
+     }
+  })
 }
 
 function updateTopic(editor){
@@ -199,11 +205,11 @@ function onCommentAdd(){
               <el-icon><EditPen/></el-icon>
             </interact-button>
             <interact-button name="点个赞吧" check-name="已点赞" color="pink" :check="topic.like"
-                             @check="interact('like', '点赞')">
+                             @check="interact('like')">
               <el-icon><CircleCheck/></el-icon>
             </interact-button>
             <interact-button name="收藏本帖" check-name="已收藏" color="orange" :check="topic.collect"
-                             @check="interact('collect', '收藏')"
+                             @check="interact('collect')"
                              style="margin-left: 20px">
               <el-icon><Star/></el-icon>
             </interact-button>

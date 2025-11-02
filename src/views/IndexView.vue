@@ -149,6 +149,7 @@ let userMenu = [
   {
     title: '校园论坛', icon: Location, sub: [
       { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
+      { title: '热门帖子', icon: Collection, index: '/index/hot' },
       { title: '草稿箱', icon: Document, index: '/index/drafts' },
       {
         title: '神券抢购',
@@ -161,8 +162,7 @@ let userMenu = [
       },
       { title: '校园公告', icon: Document, index: '/index/notice' },
       { title: '消息通知', icon: Bell, index: '/index/notification' },
-      { title: '校园活动（未开发）', icon: Notification },
-      { title: '失物招领（未开发）', icon: Bell }
+      { title: '校园活动', icon: Notification, index: '/index/activity'},
     ]
   }, {
     title: '个人设置', icon: Operation, sub: [

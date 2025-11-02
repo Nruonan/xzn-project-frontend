@@ -28,7 +28,7 @@ const adminMenu = [
       {title: '神券抢购管理', icon: Money, index: '/admin/ticket'},
       {title: '神券订单管理', icon: Bell, index: '/admin/order'},
       {title: '公告管理', icon: Document, index: '/admin/notice'},
-      {title: '放松一刻管理', icon: ToiletPaper, index: '/admin/relax'},
+      {title: '活动管理', icon: ToiletPaper, index: '/admin/activity'},
     ]
   }
 ]

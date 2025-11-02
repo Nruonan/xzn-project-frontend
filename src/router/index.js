@@ -59,6 +59,11 @@ const router = createRouter({
           ]
         },
         {
+          path: 'hot',
+          name: 'hot-topics',
+          component: () => import('../views/forum/HotTopics.vue') // 新增热门帖子页面
+        },
+        {
           path: 'drafts',
           name: 'drafts',
           component: () => import('../views/Draft/Draft.vue'),
