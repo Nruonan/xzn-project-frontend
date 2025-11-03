@@ -202,7 +202,7 @@ const editorOption = {
     <div style="display: flex; gap: 10px">
       <div style="width: 150px;" >
         <el-select :teleported="false"  v-model="editor.type" value-key="id" :disabled="!store.forum.types.length" placeholder="请选择主题类型...">
-          <el-option  :key="item.id" :label="item.name"  v-for="item in store.forum.types.filter(type => type.id > 0 && type.id < 6)" :value="item">
+          <el-option  :key="item.id" :label="item.name"  v-for="item in store.forum.types.filter(type => type.id > 1 && type.id < 9)" :value="item">
             <div>
               <color-dot :color="item.color"/>
               <span style="margin-left: 8px">{{item.name}}</span>

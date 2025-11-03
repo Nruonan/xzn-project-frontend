@@ -136,73 +136,83 @@ loadCommentList()
 </script>
 
 <template>
-  <div class="comment-admin">
-    <div class="title">
-      <el-icon><Document /></el-icon>
-      讨论管理
-    </div>
-    <div class="desc">
-      在这里管理平台的所有讨论内容
-    </div>
-    <!-- 添加搜索区域 -->
-    <div class="search-area" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
-      <el-input
-          v-model="commentTable.searchContent"
-          placeholder="请输入评论内容进行搜索"
-          clearable
-          style="width: 300px"
-          @keyup.enter="searchComments"
-      />
-      <el-button type="primary" :icon="Search" @click="searchComments">搜索</el-button>
-      <el-button @click="resetSearch">重置</el-button>
-    </div>
-    <el-table :data="commentTable.data" height="600">
-      <el-table-column prop="id" label="评论编号" width="120" />
-      <el-table-column prop="uid" label="用户ID" width="120" />
-      <el-table-column prop="tid" label="帖子ID" width="120" />
-      <el-table-column prop="content" label="评论内容" width="300" >
-        <template #default="{ row }">
-          <div class="table-post-title">
-            {{ row.content.length > 50 ? row.content.substring(0, 50) + '...' : row.content }}
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column prop="root" label="根评论" width="120" />
-      <el-table-column prop="quote" label="引用评论" width="120" />
-      <el-table-column label="评论时间" width="200">
-        <template #default="{ row }">
-          {{ new Date(row.time).toLocaleString() }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="250" align="center">
-        <template #default="{ row }">
-          <el-button type="primary" size="small" :icon="View" @click="openCommentDetail(row)">查看</el-button>
-          <el-button type="success" size="small" :icon="EditPen" @click="openCommentEditor(row)">编辑</el-button>
-          <el-button type="danger" size="small" :icon="Delete" @click="deleteComment(row.id)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="pagination">
-      <el-pagination
-          :total="commentTable.total"
-          v-model:current-page="commentTable.page"
-          v-model:page-size="commentTable.size"
-          layout="total, sizes, prev, pager, next, jumper"
-          @current-change="handlePageChange"
-          @size-change="handleSizeChange"
-      />
-    </div>
-
-    <!-- 评论详情/编辑抽屉 -->
-    <el-drawer v-model="editor.display" size="50%">
+  <div class="comment-admin" style="padding: 10px 20px">
+    <el-card>
       <template #header>
-        <div>
-          <div style="font-weight: bold">
-            <el-icon><Document /></el-icon> {{ editor.isDetail ? '评论详情' : '编辑评论' }}
-          </div>
-          <div style="font-size: 13px">{{ editor.isDetail ? '评论详细信息' : '编辑完成后请点击下方保存按钮' }}</div>
+        <div class="card-header">
+          <el-icon><Document /></el-icon>
+          讨论管理
         </div>
       </template>
+      
+      <div class="desc">
+        在这里管理平台的所有讨论内容
+      </div>
+      
+      <!-- 搜索区域 -->
+      <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
+        <div></div> <!-- 左侧占位 -->
+        <div style="display: flex; gap: 10px">
+          <el-input
+              v-model="commentTable.searchContent"
+              placeholder="请输入评论内容进行搜索"
+              clearable
+              style="width: 300px"
+              @keyup.enter="searchComments"
+          />
+          <el-button type="primary" :icon="Search" @click="searchComments">搜索</el-button>
+          <el-button @click="resetSearch">重置</el-button>
+        </div>
+      </div>
+      
+      <!-- 表格区域 -->
+      <el-table :data="commentTable.data" style="width: 100%" border>
+        <el-table-column prop="id" label="评论编号" min-width="120" />
+        <el-table-column prop="uid" label="用户ID" min-width="120" />
+        <el-table-column prop="tid" label="帖子ID" min-width="120" />
+        <el-table-column prop="content" label="评论内容" min-width="550" >
+          <template #default="{ row }">
+            <div class="table-post-title">
+              {{ row.content.length > 50 ? row.content.substring(0, 50) + '...' : row.content }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="评论时间" min-width="200">
+          <template #default="{ row }">
+            {{ new Date(row.time).toLocaleString() }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="250" align="center">
+          <template #default="{ row }">
+            <el-button-group>
+              <el-button type="primary" size="small" :icon="View" @click="openCommentDetail(row)">查看</el-button>
+              <el-button type="success" size="small" :icon="EditPen" @click="openCommentEditor(row)">编辑</el-button>
+              <el-button type="danger" size="small" :icon="Delete" @click="deleteCommentById(row.id)">删除</el-button>
+            </el-button-group>
+          </template>
+        </el-table-column>
+      </el-table>
+      
+      <!-- 分页组件 -->
+      <div style="margin-top: 20px; display: flex; justify-content: center">
+        <el-pagination
+            :total="commentTable.total"
+            v-model:current-page="commentTable.page"
+            v-model:page-size="commentTable.size"
+            layout="total, sizes, prev, pager, next, jumper"
+            @current-change="handlePageChange"
+            @size-change="handleSizeChange"
+        />
+      </div>
+    </el-card>
+
+    <!-- 评论详情/编辑对话框 -->
+    <el-dialog 
+      v-model="editor.display" 
+      :title="editor.isDetail ? '评论详情' : '编辑评论'" 
+      width="500px"
+      draggable
+    >
       <el-form label-position="top" :disabled="editor.isDetail">
         <el-form-item label="评论编号">
           <el-input v-model="editor.temp.id" disabled />
@@ -240,12 +250,12 @@ loadCommentList()
         </el-form-item>
       </el-form>
       <template #footer>
-        <div style="text-align: center">
-          <el-button type="success" @click="saveComment" v-if="!editor.isDetail">保存</el-button>
+        <span class="dialog-footer">
           <el-button type="info" @click="editor.display = false">{{ editor.isDetail ? '关闭' : '取消' }}</el-button>
-        </div>
+          <el-button type="success" @click="saveComment" v-if="!editor.isDetail">保存</el-button>
+        </span>
       </template>
-    </el-drawer>
+    </el-dialog>
   </div>
 </template>
 

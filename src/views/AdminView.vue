@@ -25,6 +25,7 @@ const adminMenu = [
       {title: '用户管理', icon: User, index: '/admin/user'},
       {title: '帖子广场管理', icon: ChatDotSquare, index: '/admin/forum'},
       {title: '帖子评论管理', icon: Notification, index: '/admin/comment'},
+      {title: '帖子类型管理', icon: Collection, index: '/admin/type'},
       {title: '神券抢购管理', icon: Money, index: '/admin/ticket'},
       {title: '神券订单管理', icon: Bell, index: '/admin/order'},
       {title: '公告管理', icon: Document, index: '/admin/notice'},
@@ -124,7 +125,7 @@ onMounted(() => {
           </div>
           <UserInfo />
         </el-header>
-        <el-main>
+        <el-main style="width: 100%; padding: 0;">
           <router-view v-slot="{ Component }">
             <keep-alive>
               <component :is="Component" />

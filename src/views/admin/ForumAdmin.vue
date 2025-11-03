@@ -1,10 +1,12 @@
 <script setup>
 import {EditPen, Document, Delete,View, Search} from "@element-plus/icons-vue";
-import { apiTopicDetail, apiTopicUpdate, apiTopicList,apiTopicRemove} from "@/net/api/forum.js";
-import {reactive, watchEffect} from "vue";
+import { apiTopicDetail, apiTopicUpdate, apiTopicList,apiTopicRemove,apiForumTypes} from "@/net/api/forum.js";
+import {computed, onMounted, reactive, watchEffect} from "vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {QuillDeltaToHtmlConverter} from "quill-delta-to-html";
+import {useStore} from '@/store/index.js'
 
+const store = useStore()
 const editor = reactive({
   id: 0,
   display: false,
@@ -19,7 +21,13 @@ const topicTable = reactive({
   total: 0,
   data: [],
   searchTitle: '', // 添加搜索标题字段
+  searchType: '', // 添加搜索类型字段
   isSearching: false // 添加搜索状态标识
+})
+
+// 过滤掉ID为1和2的帖子类型
+const filteredTypes = computed(() => {
+  return store.forum.types.filter(item => item.id !== 1 && item.id !== 2)
 })
 
 // 打开编辑器
@@ -96,22 +104,17 @@ function deleteTopic(id){
 }
 
 function convertType(type){
-  if(type === 1)
-    return '日常闲聊'
-  else if(type === 2)
-    return '真诚交友'
-  else if(type === 3)
-    return '问题反馈'
-  else if(type === 4)
-    return '恋爱官宣'
-  else
-    return '踩坑记录'
+  for(let item of store.forum.types){
+    if(item.id === type)
+      return item.name
+  }
+  return '未知类型'
 }
 
 // 加载所有帖子列表（默认情况）
 function loadTopicList() {
   topicTable.isSearching = false
-  apiTopicList(topicTable.page, topicTable.size, '', data => {
+  apiTopicList(topicTable.page, topicTable.size,'','',  data => {
     topicTable.total = data.total
     topicTable.data = data.list
   })
@@ -121,7 +124,14 @@ function loadTopicList() {
 function searchTopics() {
   topicTable.isSearching = true
   topicTable.page = 1 // 搜索时重置到第一页
-  apiTopicList(topicTable.page, topicTable.size, topicTable.searchTitle, data => {
+  // 构造搜索参数
+  const searchParams = {
+    title: topicTable.searchTitle,
+    type: topicTable.searchType
+  }
+  console.log(topicTable.searchType);
+  // 调用API进行搜索，同时传递标题和类型参数
+  apiTopicList(topicTable.page, topicTable.size, topicTable.searchTitle, topicTable.searchType, data => {
     topicTable.total = data.total
     topicTable.data = data.list
   })
@@ -130,22 +140,25 @@ function searchTopics() {
 // 重置搜索
 function resetSearch() {
   topicTable.searchTitle = ''
+  topicTable.searchType = ''
   topicTable.isSearching = false
   topicTable.page = 1
   loadTopicList()
 }
 
-// 分页变化时的处理函数
-function handlePageChange() {
+// 处理分页变化
+function handlePageChange(page) {
+  topicTable.page = page
   if (topicTable.isSearching) {
-    searchTopics()
+    searchTopics() // 如果正在搜索，则重新执行搜索
   } else {
-    loadTopicList()
+    loadTopicList() // 否则加载常规列表
   }
 }
 
-// 大小变化时的处理函数
-function handleSizeChange() {
+// 处理每页大小变化
+function handleSizeChange(size) {
+  topicTable.size = size
   topicTable.page = 1 // 重置到第一页
   if (topicTable.isSearching) {
     searchTopics()
@@ -155,119 +168,165 @@ function handleSizeChange() {
 }
 
 // 默认加载所有数据
-loadTopicList()
+onMounted(() => {
+  loadTopicList()
+  apiForumTypes()
+})
 </script>
 
 <template>
-  <div class="post-admin">
-    <div class="title">
-      <el-icon><Document/></el-icon>
-      论坛帖子列表
-    </div>
-    <div class="desc">
-      在这里管理论坛的所有帖子，包括帖子内容、隐藏和删除处理
-    </div>
-    <!-- 添加搜索区域 -->
-    <div class="search-area" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
-      <el-input
-          v-model="topicTable.searchTitle"
-          placeholder="请输入帖子标题进行搜索"
-          clearable
-          style="width: 300px"
-          @keyup.enter="searchTopics"
-      />
-      <el-button type="primary" :icon="Search" @click="searchTopics">搜索</el-button>
-      <el-button @click="resetSearch">重置</el-button>
-    </div>
-    <el-table :data="topicTable.data" height="600">
-      <el-table-column prop="id" label="编号" width="100"/>
-      <el-table-column label="标题" width="200" align="center">
-        <template #default="{ row }">
-          <div class="table-post-title">
-            {{ row.title.length > 25 ? row.title.substring(0, 25) + '...' : row.title }}
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="作者" width="140" align="center">
-        <template #default="{ row }">
-          {{ row.uid }}
-        </template>
-      </el-table-column>
-      <el-table-column width="140" align="center" label="类型">
-        <template #default="{ row }">
-          {{ convertType(row.type) }}
-        </template>
-      </el-table-column>
-      <el-table-column width="250" align="center" label="内容">
-        <template #default="{ row }">
-          <div v-html="convertToHtml(row.content).length > 50 ? convertToHtml(row.content).substring(0, 50) + '...' : convertToHtml(row.content)"></div>
-        </template>
-      </el-table-column>
-      <el-table-column label="发布时间" width="200" align="center">
-        <template #default="{ row }">
-          {{ new Date(row.time).toLocaleString() }}
-        </template>
-      </el-table-column>
-      <el-table-column label="置顶状态" width="150" align="center">
-        <template #default="{ row }">
-          {{postStatus(row.top)}}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center">
-        <template #default="{ row }">
-          <el-button type="primary" size="small" :icon="View" @click="openCommentDetail(row)">查看</el-button>
-          <el-button type="success" size="small" :icon="EditPen"
-                     @click="openPostEditor(row)">编辑</el-button>
-          <el-button type="danger" size="small" :icon="Delete"
-                     @click="deleteTopic(row.id)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="pagination">
-      <el-pagination :total="topicTable.total"
-                     v-model:current-page="topicTable.page"
-                     v-model:page-size="topicTable.size"
-                     layout="total, sizes, prev, pager, next, jumper"
-                     @current-change="handlePageChange"
-                     @size-change="handleSizeChange"/>
-    </div>
-    <el-drawer v-model="editor.display">
+  <div class="post-admin" style="padding: 10px 20px">
+    <el-card>
       <template #header>
-        <div>
-          <div style="font-weight: bold">
-            <el-icon><EditPen/></el-icon> {{ editor.isDetail ? '查看帖子信息' : '编辑帖子信息' }}
-          </div>
-          <div style="font-size: 13px">{{ editor.isDetail ? '查看帖子详细信息' : '编辑完成后请点击下方保存按钮' }}</div>
+        <div class="card-header">
+          <el-icon><Document /></el-icon>
+          论坛帖子管理
         </div>
       </template>
+      
+      <div class="desc">
+        在这里管理论坛的所有帖子内容
+      </div>
+      
+      <!-- 操作区域 -->
+      <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
+        <div></div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap">
+          <el-input
+              v-model="topicTable.searchTitle"
+              placeholder="请输入帖子标题进行搜索"
+              clearable
+              style="width: 200px"
+              @keyup.enter="searchTopics"
+          />
+          <el-select
+              v-model="topicTable.searchType"
+              placeholder="请选择帖子类型"
+              clearable
+              style="width: 150px"
+          >
+            <el-option
+                v-for="item in filteredTypes"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+            />
+          </el-select>
+          <el-button type="primary" :icon="Search" @click="searchTopics">搜索</el-button>
+          <el-button @click="resetSearch">重置</el-button>
+        </div>
+      </div>
+      
+      <!-- 表格区域 -->
+      <el-table :data="topicTable.data" style="width: 100%" border>
+        <el-table-column prop="id" label="帖子编号" min-width="120" />
+          <el-table-column prop="title" label="帖子标题" min-width="150" >
+            <template #default="{ row }">
+              <div class="table-post-title">
+                {{ row.title.length > 20 ? row.title.substring(0, 20) + '...' : row.title }}
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="content" label="帖子内容" min-width="450" >
+            <template #default="{ row }">
+              <div class="table-post-title">
+                {{ row.content.length > 50 ? row.content.substring(0, 50) + '...' : row.content }}
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column  label="帖子类型" min-width="80" >
+            <template #default="{ row }">
+              {{ convertType(row.type) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="uid" label="用户编号" min-width="80" />
+          <el-table-column label="发帖时间" min-width="200">
+            <template #default="{ row }">
+              {{ new Date(row.time).toLocaleString() }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" min-width="250" align="center">
+          <template #default="{ row }">
+            <el-button-group>
+              <el-button type="primary" size="small" :icon="View" @click="openCommentDetail(row)">查看</el-button>
+              <el-button type="success" size="small" :icon="EditPen" @click="openPostEditor(row)">编辑</el-button>
+              <el-button type="danger" size="small" :icon="Delete" @click="deleteTopic(row.id)">删除</el-button>
+            </el-button-group>
+          </template>
+        </el-table-column>
+      </el-table>
+      
+      <!-- 分页组件 -->
+      <div style="margin-top: 20px; display: flex; justify-content: center">
+        <el-pagination
+            :total="topicTable.total"
+            v-model:current-page="topicTable.page"
+            v-model:page-size="topicTable.size"
+            layout="total, sizes, prev, pager, next, jumper"
+            @current-change="handlePageChange"
+            @size-change="handleSizeChange"
+        />
+      </div>
+    </el-card>
+
+    <!-- 编辑对话框 -->
+    <el-dialog 
+      v-model="editor.display" 
+      :title="editor.isDetail ? '帖子详情' : '编辑帖子'" 
+      width="500px"
+      draggable
+    >
       <el-form label-position="top" :disabled="editor.isDetail">
-        <el-form-item label="标题">
-          <el-input v-model="editor.temp.title"/>
+        <el-form-item label="帖子编号">
+          <el-input v-model="editor.temp.id" disabled />
         </el-form-item>
-        <el-form-item label="内容">
-          <el-input type="textarea" :rows="4" v-model="editor.temp.content"/>
+        <el-form-item label="帖子标题">
+          <el-input
+              v-model="editor.temp.title"
+              :disabled="editor.isDetail"
+              placeholder="请输入帖子标题"
+          />
         </el-form-item>
-        <div style="display: flex;font-size: 14px;gap: 20px">
-          <div>
-            <span style="margin-right: 10px">置顶状态</span>
-            <el-radio-group v-model="editor.temp.top">
-              <el-radio :label="1">置顶</el-radio>
-              <el-radio :label="0">非置顶</el-radio>
-            </el-radio-group>
-          </div>
-        </div>
-        <div style="margin-top: 10px;color: #606266;font-size: 14px">
-          发布时间: {{ new Date(editor.temp.time).toLocaleString() }}
-        </div>
-        <el-divider/>
+        <el-form-item label="帖子内容">
+          <el-input
+              v-model="editor.temp.content"
+              type="textarea"
+              :rows="6"
+              :disabled="editor.isDetail"
+              placeholder="请输入帖子内容"
+          />
+        </el-form-item>
+        <el-form-item label="发帖人">
+          <el-input
+              v-model="editor.temp.uid"
+              :disabled="editor.isDetail"
+              placeholder="请输入发帖人"
+          />
+        </el-form-item>
+        <el-form-item label="发帖时间">
+          <el-date-picker
+              v-model="editor.temp.time"
+              type="datetime"
+              placeholder="选择日期时间"
+              style="width: 100%"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              :disabled="editor.isDetail"
+          />
+        </el-form-item>
+        <el-form-item label="置顶状态" v-if="!editor.isDetail">
+          <el-radio-group v-model="editor.temp.top">
+            <el-radio :label="1">置顶</el-radio>
+            <el-radio :label="0">非置顶</el-radio>
+          </el-radio-group>
+        </el-form-item>
       </el-form>
       <template #footer>
-        <div style="text-align: center">
-          <el-button type="success" @click="savePostDetail" v-if="!editor.isDetail">保存</el-button>
+        <span class="dialog-footer">
           <el-button type="info" @click="editor.display = false">{{ editor.isDetail ? '关闭' : '取消' }}</el-button>
-        </div>
+          <el-button type="success" @click="savePostDetail" v-if="!editor.isDetail">保存</el-button>
+        </span>
       </template>
-    </el-drawer>
+    </el-dialog>
   </div>
 </template>
 

@@ -44,7 +44,7 @@ const weather = reactive({
 })
 const topics = reactive({
   list: [],
-  type: 0,
+  type: 1,
   page: 0,
   end: false,
   top: []
@@ -80,7 +80,7 @@ function updateList() {
   if (topics.end) {
     return
   }
-  if (topics.type === 6) {
+  if (topics.type === 2) {
     apiForumTopicListByFollow(topics.page, data => {
       if (data) {
         data.forEach(d => topics.list.push(d))
@@ -150,7 +150,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div style="display: flex; margin: 20px auto; gap:20px; max-width: 1040px; padding: 20px;">
+  <div style="display: flex; margin: 20px auto; gap:20px; max-width: 1340px; padding: 20px;">
     <div style="flex: 1">
       <light-card>
         <div class="create-topic" @click="editor = true">
@@ -262,7 +262,7 @@ onMounted(() => {
             <el-icon>
               <CollectionTag/>
             </el-icon>
-            <span style="margin-left: 5px;">校园公告</span>
+            <span style="margin-left: 5px;">社区公告</span>
           </div>
           <el-divider style="margin: 10px 0;"/>
           <ul style="list-style: none; padding: 0;">

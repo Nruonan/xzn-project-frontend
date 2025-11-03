@@ -73,8 +73,8 @@ export const apiFollowDetail = (success) =>
 export const apiFansDetail = (success) =>
     get('/follow/fans-list', success)
 
-export const apiTopicList = (page, size,searchTitle, success) =>
-    get(`/api/admin/forum/list?page=${page}&size=${size}&searchTitle=${searchTitle}`, success)
+export const apiTopicList = (page, size,searchTitle,searchType, success) =>
+    get(`/api/admin/forum/list?page=${page}&size=${size}&searchTitle=${searchTitle}&typeId=${searchType}`, success)
 export const apiTopicDetail = (id, success) =>
     get(`/api/admin/forum/detail?id=${id}`, success)
 
@@ -100,3 +100,18 @@ export const apiForumDrafts = (page, size, success) =>
 
 export const apiForumDraftDelete = (id, success) =>
     get(`/api/forum/draft/delete?id=${id}`, success)
+
+export const apiAdminTopicTypeList = (page, size, searchName, success) =>
+    get(`/api/admin/topic-type/list?page=${page}&size=${size}&name=${searchName}`, success)
+
+export const apiAdminTopicTypeCreate = (data, success) =>
+    post('/api/admin/topic-type/create', data, success)
+
+export const apiAdminTopicTypeUpdate = (data, success) =>
+    post('/api/admin//topic-type/update', data, success)
+
+export const apiAdminTopicTypeRemove = (id, success) =>
+    get(`/api/admin//topic-type/delete?id=${id}`, success)
+
+export const apiAdminTopicTypeDetail = (id, success) =>
+    get(`/api/admin//topic-type/detail?id=${id}`, success)

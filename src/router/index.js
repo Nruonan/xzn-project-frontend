@@ -164,6 +164,15 @@ const router = createRouter({
           path: 'notice',
           name: 'admin-notice',
           component: () => import('../views/admin/NoticeAdmin.vue')
+        },{
+          path: 'type',
+          name: 'admin-topic-type',
+          component: () => import('../views/admin/TypeAdmin.vue')
+        },{
+          path: 'activity',
+          name: 'admin-activity',
+          component: () => import('../views/admin/ActivityAdmin.vue')
+
         }
       ]
     },
