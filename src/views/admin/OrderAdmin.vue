@@ -139,79 +139,73 @@ loadOrderList()
 </script>
 
 <template>
-  <div class="order-admin">
-    <div class="title">
-      <el-icon><Document/></el-icon>
-      订单列表
-    </div>
-    <div class="desc">
-      在这里管理平台的所有订单信息
-    </div>
-    <!-- 添加搜索区域 -->
-    <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
-      <el-input
-        v-model="orderTable.searchTid"
-        placeholder="请输入神券ID进行搜索"
-        clearable
-        style="width: 300px"
-        @keyup.enter="searchOrders"
-      />
-      <el-button type="primary" :icon="Search" @click="searchOrders">搜索</el-button>
-      <el-button @click="resetSearch">重置</el-button>
-    </div>
-    <el-table :data="orderTable.data" height="500">
-      <el-table-column prop="id" label="订单编号" width="220"/>
-      <el-table-column label="用户ID" width="80" align="center">
-        <template #default="{ row }">
-          {{ row.uid }}
-        </template>
-      </el-table-column>
-      <el-table-column label="神券ID" width="80" align="center">
-        <template #default="{ row }">
-          {{ row.tid }}
-        </template>
-      </el-table-column>
-      <el-table-column label="购买数量" width="80" align="center">
-        <template #default="{ row }">
-          {{ row.count }}
-        </template>
-      </el-table-column>
-      <el-table-column label="订单金额" width="80" align="center">
-        <template #default="{ row }">
-          {{ row.price }}
-        </template>
-      </el-table-column>
-      <el-table-column label="下单时间" width="280" align="center">
-        <template #default="{ row }">
-          {{ new Date(row.time).toLocaleString() }}
-        </template>
-      </el-table-column>
-      <el-table-column label="支付状态" width="200" align="center">
-        <template #default="{ row }">
-          <el-tag :type="row.pay ? 'success' : 'danger'">{{ orderStatus(row.pay) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center">
-        <template #default="{ row }">
-          <el-button type="primary" size="small" :icon="View"
-                     @click="openOrderDetail(row)">查看</el-button>
-          <el-button type="success" size="small" :icon="EditPen"
-                     @click="openOrderEditor(row)">编辑</el-button>
-          <el-button type="danger" size="small" :icon="Delete"
-                     @click="deleteOrder(row.id)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="pagination">
-      <el-pagination :total="orderTable.total"
-                     v-model:current-page="orderTable.page"
-                     v-model:page-size="orderTable.size"
-                     layout="total, sizes, prev, pager, next, jumper"
-                     @current-change="handlePageChange"
-                     @size-change="handleSizeChange"/>
-    </div>
-    <!-- 订单详情/编辑抽屉 -->
-    <el-drawer v-model="editor.display">
+  <div class="order-admin" style="padding: 10px 20px">
+    <el-card :icon="Document" title="订单列表" desc="在这里管理平台的所有订单信息">
+      <!-- 搜索区域 -->
+      <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
+        <el-input
+            v-model="orderTable.searchDesc"
+            placeholder="请输入订单编号或用户ID进行搜索"
+            clearable
+            style="width: 300px"
+            @keyup.enter="searchOrders"
+        />
+        <el-button type="primary" :icon="Search" @click="searchOrders">搜索</el-button>
+        <el-button @click="resetSearch">重置</el-button>
+      </div>
+      <el-table :data="orderTable.data" height="500">
+        <el-table-column prop="id" label="订单编号" width="180"/>
+        <el-table-column prop="uid" label="用户ID" width="80" align="center"/>
+        <el-table-column prop="tid" label="神券ID" width="80" align="center"/>
+        <el-table-column label="神券名称" width="150">
+          <template #default="{ row }">
+            <div class="table-ticket-name">
+              {{ row.ticketName }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="购买数量" width="80" align="center">
+          <template #default="{ row }">
+            {{ row.count }}
+          </template>
+        </el-table-column>
+        <el-table-column label="订单金额" width="80" align="center">
+          <template #default="{ row }">
+            {{ row.price }}
+          </template>
+        </el-table-column>
+        <el-table-column label="下单时间" width="280" align="center">
+          <template #default="{ row }">
+            {{ new Date(row.time).toLocaleString() }}
+          </template>
+        </el-table-column>
+        <el-table-column label="支付状态" width="200" align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.pay ? 'success' : 'danger'">{{ orderStatus(row.pay) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center">
+          <template #default="{ row }">
+            <el-button type="primary" size="small" :icon="View"
+                       @click="openOrderDetail(row)">查看</el-button>
+            <el-button type="success" size="small" :icon="EditPen"
+                       @click="openOrderEditor(row)">编辑</el-button>
+            <el-button type="danger" size="small" :icon="Delete"
+                       @click="deleteOrder(row.id)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="pagination" style="margin-top: 20px; display: flex; justify-content: center">
+        <el-pagination :total="orderTable.total"
+                       v-model:current-page="orderTable.page"
+                       v-model:page-size="orderTable.size"
+                       layout="total, sizes, prev, pager, next, jumper"
+                       @current-change="handlePageChange"
+                       @size-change="handleSizeChange"/>
+      </div>
+    </el-card>
+    <!-- 订单详情/编辑弹窗 -->
+    <el-dialog v-model="editor.display" width="500px" :title="editor.isDetail ? '订单详情' : '编辑订单'">
       <template #header>
         <div>
           <div style="font-weight: bold">
@@ -259,26 +253,44 @@ loadOrderList()
           <el-button type="info" @click="editor.display = false">{{ editor.isDetail ? '关闭' : '取消' }}</el-button>
         </div>
       </template>
-    </el-drawer>
+    </el-dialog>
   </div>
 </template>
 
 <style lang="less" scoped>
-.order-admin{
-  .title{
-    font-weight: bold;
-  }
+.order-admin {
+  .order-card {
+    width: 100%;
 
-  .desc{
-    color: #bababa;
-    font-size: 13px;
-    margin-bottom: 20px;
-  }
+    .card-header {
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+      gap: 8px;
+    }
 
-  .pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: right;
+    .desc {
+      color: #bababa;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .search-area {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .order-table {
+      width: 100%;
+    }
+
+    .pagination {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+    }
   }
 }
 </style>

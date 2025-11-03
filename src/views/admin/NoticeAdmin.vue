@@ -168,86 +168,95 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="notice-admin">
-    <div class="title">
-      <el-icon><Document /></el-icon>
-      公告管理
-    </div>
-    <div class="desc">
-      在这里管理平台的所有公告内容
-    </div>
-    <!-- 添加操作区域 -->
-    <div class="operation-area" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
-      <!-- 搜索功能暂时保留，但需要后端支持 -->
-      <el-input
-          v-model="noticeTable.searchTitle"
-          placeholder="请输入公告标题进行搜索"
-          clearable
-          style="width: 300px"
-          @keyup.enter="searchNotices"
-      />
-      <el-button type="primary" :icon="Search" @click="searchNotices">搜索</el-button>
-      <el-button @click="resetSearch">重置</el-button>
-      <el-button type="primary" :icon="Plus" @click="openCreateNotice">添加公告</el-button>
-    </div>
-    <el-table :data="noticeTable.data" height="600">
-      <el-table-column prop="id" label="公告编号" width="120" />
-      <el-table-column prop="title" label="公告标题" width="150" >
-        <template #default="{ row }">
-          <div class="table-post-title">
-            {{ row.title.length > 20 ? row.title.substring(0, 20) + '...' : row.title }}
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column prop="content" label="公告内容" width="550" >
-        <template #default="{ row }">
-          <div class="table-post-content">
-            {{ row.content.length > 50 ? row.content.substring(0, 50) + '...' : row.content }}
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column prop="status" label="是否置顶" width="120">
-        <template #default="{ row }">
-          <el-tag :type="row.status ? 'danger' : 'info'">{{ row.status == 1 ? '是' : '否' }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="发布时间" width="200">
-        <template #default="{ row }">
-          {{ new Date(row.publishTime).toLocaleString() }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="250" align="center">
-        <template #default="{ row }">
-          <el-button type="primary" size="small" :icon="View" @click="openNoticeDetail(row)">查看</el-button>
-          <el-button type="success" size="small" :icon="EditPen" @click="openNoticeEditor(row)">编辑</el-button>
-          <el-button type="danger" size="small" :icon="Delete" @click="deleteNoticeById(row.id)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="pagination">
-      <el-pagination
-          :total="noticeTable.total"
-          v-model:current-page="noticeTable.page"
-          v-model:page-size="noticeTable.size"
-          layout="total, sizes, prev, pager, next, jumper"
-          @current-change="handlePageChange"
-          @size-change="handleSizeChange"
-      />
-    </div>
-
-    <!-- 公告详情/编辑抽屉 -->
-    <el-drawer v-model="editor.display" size="50%">
+  <div class="notice-admin" style="padding: 10px 20px">
+    <el-card>
       <template #header>
-        <div>
-          <div style="font-weight: bold">
-            <el-icon><Document /></el-icon>
-            {{ editor.isCreate ? '创建公告' : editor.isDetail ? '公告详情' : '编辑公告' }}
-          </div>
-          <div style="font-size: 13px">
-            {{ editor.isCreate ? '填写公告信息后点击保存' : editor.isDetail ? '公告详细信息' : '编辑完成后请点击下方保存按钮' }}
-          </div>
+        <div class="card-header">
+          <el-icon><Document /></el-icon>
+          公告管理
         </div>
       </template>
+      
+      <div class="desc">
+        在这里管理平台的所有公告内容
+      </div>
+      
+      <!-- 操作区域 -->
+      <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
+        <div>
+          <el-button type="primary" :icon="Plus" @click="openCreateNotice">添加公告</el-button>
+        </div>
+        <div style="display: flex; gap: 10px">
+          <el-input
+              v-model="noticeTable.searchTitle"
+              placeholder="请输入公告标题进行搜索"
+              clearable
+              style="width: 300px"
+              @keyup.enter="searchNotices"
+          />
+          <el-button type="primary" :icon="Search" @click="searchNotices">搜索</el-button>
+          <el-button @click="resetSearch">重置</el-button>
+        </div>
+      </div>
+      
+      <!-- 表格区域 -->
+      <el-table :data="noticeTable.data" style="width: 100%" border>
+        <el-table-column prop="id" label="公告编号" min-width="120" />
+        <el-table-column prop="title" label="公告标题" min-width="150" >
+          <template #default="{ row }">
+            <div class="table-post-title">
+              {{ row.title.length > 20 ? row.title.substring(0, 20) + '...' : row.title }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="content" label="公告内容" min-width="550" >
+          <template #default="{ row }">
+            <div class="table-post-title">
+              {{ row.content.length > 50 ? row.content.substring(0, 50) + '...' : row.content }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="是否置顶" min-width="120">
+          <template #default="{ row }">
+            <el-tag :type="row.status ? 'danger' : 'info'">{{ row.status == 1 ? '是' : '否' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="发布时间" min-width="200">
+          <template #default="{ row }">
+            {{ new Date(row.publishTime).toLocaleString() }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="250" align="center">
+          <template #default="{ row }">
+            <el-button-group>
+              <el-button type="primary" size="small" :icon="View" @click="openNoticeDetail(row)">查看</el-button>
+              <el-button type="success" size="small" :icon="EditPen" @click="openNoticeEditor(row)">编辑</el-button>
+              <el-button type="danger" size="small" :icon="Delete" @click="deleteNoticeById(row.id)">删除</el-button>
+            </el-button-group>
+          </template>
+        </el-table-column>
+      </el-table>
+      
+      <!-- 分页组件 -->
+      <div style="margin-top: 20px; display: flex; justify-content: center">
+        <el-pagination
+            :total="noticeTable.total"
+            v-model:current-page="noticeTable.page"
+            v-model:page-size="noticeTable.size"
+            layout="total, sizes, prev, pager, next, jumper"
+            @current-change="handlePageChange"
+            @size-change="handleSizeChange"
+        />
+      </div>
+    </el-card>
+
+    <!-- 公告详情/编辑对话框 -->
+    <el-dialog 
+      v-model="editor.display" 
+      :title="editor.isCreate ? '创建公告' : editor.isDetail ? '公告详情' : '编辑公告'" 
+      width="600px"
+      draggable
+    >
       <el-form label-position="top" :disabled="editor.isDetail">
         <el-form-item label="公告编号" v-if="!editor.isCreate">
           <el-input v-model="editor.temp.id" disabled />
@@ -307,12 +316,12 @@ onMounted(() => {
         </el-form-item>
       </el-form>
       <template #footer>
-        <div style="text-align: center">
-          <el-button type="success" @click="saveNotice" v-if="!editor.isDetail">保存</el-button>
+        <span class="dialog-footer">
           <el-button type="info" @click="editor.display = false">{{ editor.isDetail ? '关闭' : '取消' }}</el-button>
-        </div>
+          <el-button type="success" @click="saveNotice" v-if="!editor.isDetail">保存</el-button>
+        </span>
       </template>
-    </el-drawer>
+    </el-dialog>
   </div>
 </template>
 

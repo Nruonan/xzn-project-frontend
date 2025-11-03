@@ -185,91 +185,87 @@ loadTicketList()
 </script>
 
 <template>
-  <div class="ticket-admin">
-    <div class="title">
-      <el-icon><Document/></el-icon>
-      神券列表
-    </div>
-    <div class="desc">
-      在这里管理平台的所有神券，包括神券信息、价格和有效期设置
-    </div>
-    <!-- 添加搜索区域 -->
-    <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
-      <el-input
-        v-model="ticketTable.searchDesc"
-        placeholder="请输入神券描述进行搜索"
-        clearable
-        style="width: 300px"
-        @keyup.enter="searchTickets"
-      />
-      <el-button type="primary" :icon="Search" @click="searchTickets">搜索</el-button>
-      <el-button @click="resetSearch">重置</el-button>
-      <el-button type="primary" :icon="Plus" @click="openAddEditor" style="margin-left: auto;">新增神券</el-button>
-    </div>
-    <el-table :data="ticketTable.data" height="500">
-      <el-table-column prop="id" label="编号" width="80"/>
-      <el-table-column label="神券名称" width="150">
-        <template #default="{ row }">
-          <div class="table-ticket-name">
-            {{ row.name }}
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="描述" align="center" width="200">
-        <template #default="{ row }">
-          {{ row.desc.length > 30 ? row.desc.substring(0, 30) + '...' : row.desc }}
-        </template>
-      </el-table-column>
-      <el-table-column label="类型" width="120" align="center">
-        <template #default="{ row }">
-          {{ ticketType(row.type) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="购买价格" width="120" align="center">
-        <template #default="{ row }">
-          {{row.price }}
-        </template>
-      </el-table-column>
-      <el-table-column label="有效期类型" width="120" align="center">
-        <template #default="{ row }">
-          {{ validDateType(row.validDateType) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="有效期" width="120" align="center">
-        <template #default="{ row }">
-          {{ row.validDate ? new Date(row.validDate).toLocaleDateString() : '' }}
-        </template>
-      </el-table-column>
-      <el-table-column label="剩余数量" width="100" align="center">
-        <template #default="{ row }">
-          {{ row.count }}
-        </template>
-      </el-table-column>
-      <el-table-column label="创建时间" width="180" align="center">
-        <template #default="{ row }">
-          {{ new Date(row.createTime).toLocaleString() }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center">
-        <template #default="{ row }">
-          <el-button type="primary" size="small" :icon="View"
-                     @click="openTicketDetail(row)">查看</el-button>
-          <el-button type="success" size="small" :icon="EditPen"
-                     @click="openTicketEditor(row)">编辑</el-button>
-          <el-button type="danger" size="small" :icon="Delete"
-                     @click="deleteTicket(row.id)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="pagination">
-      <el-pagination :total="ticketTable.total"
-                     v-model:current-page="ticketTable.page"
-                     v-model:page-size="ticketTable.size"
-                     layout="total, sizes, prev, pager, next, jumper"
-                     @current-change="handlePageChange"
-                     @size-change="handleSizeChange"/>
-    </div>
-    <el-drawer v-model="editor.display">
+  <div class="ticket-admin" style="padding: 10px 20px">
+    <el-card :icon="Document" title="神券列表" desc="在这里管理平台的所有神券，包括神券信息、价格和有效期设置">
+      <!-- 添加搜索区域 -->
+      <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
+        <el-input
+            v-model="ticketTable.searchDesc"
+            placeholder="请输入神券描述进行搜索"
+            clearable
+            style="width: 300px"
+            @keyup.enter="searchTickets"
+        />
+        <el-button type="primary" :icon="Search" @click="searchTickets">搜索</el-button>
+        <el-button @click="resetSearch">重置</el-button>
+        <el-button type="primary" :icon="Plus" @click="openAddEditor" style="margin-left: auto;">新增神券</el-button>
+      </div>
+      <el-table :data="ticketTable.data" height="500">
+        <el-table-column prop="id" label="编号" width="80"/>
+        <el-table-column label="神券名称" width="150">
+          <template #default="{ row }">
+            <div class="table-ticket-name">
+              {{ row.name }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="描述" align="center" width="200">
+          <template #default="{ row }">
+            {{ row.desc.length > 30 ? row.desc.substring(0, 30) + '...' : row.desc }}
+          </template>
+        </el-table-column>
+        <el-table-column label="类型" width="120" align="center">
+          <template #default="{ row }">
+            {{ ticketType(row.type) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="购买价格" width="120" align="center">
+          <template #default="{ row }">
+            {{row.price }}
+          </template>
+        </el-table-column>
+        <el-table-column label="有效期类型" width="120" align="center">
+          <template #default="{ row }">
+            {{ validDateType(row.validDateType) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="有效期" width="120" align="center">
+          <template #default="{ row }">
+            {{ row.validDate ? new Date(row.validDate).toLocaleDateString() : '' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="剩余数量" width="100" align="center">
+          <template #default="{ row }">
+            {{ row.count }}
+          </template>
+        </el-table-column>
+        <el-table-column label="创建时间" width="180" align="center">
+          <template #default="{ row }">
+            {{ new Date(row.createTime).toLocaleString() }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center">
+          <template #default="{ row }">
+            <el-button type="primary" size="small" :icon="View"
+                       @click="openTicketDetail(row)">查看</el-button>
+            <el-button type="success" size="small" :icon="EditPen"
+                       @click="openTicketEditor(row)">编辑</el-button>
+            <el-button type="danger" size="small" :icon="Delete"
+                       @click="deleteTicket(row.id)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="pagination" style="margin-top: 20px; display: flex; justify-content: center">
+        <el-pagination :total="ticketTable.total"
+                       v-model:current-page="ticketTable.page"
+                       v-model:page-size="ticketTable.size"
+                       layout="total, sizes, prev, pager, next, jumper"
+                       @current-change="handlePageChange"
+                       @size-change="handleSizeChange"/>
+      </div>
+    </el-card>
+    <!-- 神券详情/编辑弹窗 -->
+    <el-dialog v-model="editor.display" width="500px" :title="editor.isDetail ? '查看神券信息' : (editor.isAdd ? '新增神券' : '编辑神券信息')">
       <template #header>
         <div>
           <div style="font-weight: bold">
@@ -325,7 +321,7 @@ loadTicketList()
           <el-button type="info" @click="editor.display = false">{{ editor.isDetail ? '关闭' : '取消' }}</el-button>
         </div>
       </template>
-    </el-drawer>
+    </el-dialog>
   </div>
 </template>
 

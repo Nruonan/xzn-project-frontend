@@ -1,7 +1,7 @@
 <script setup>
 import {EditPen, User} from "@element-plus/icons-vue";
 import {apiUserDetailTotal, apiUserList, apiUserSave} from "@/net/api/user.js";
-import {reactive, watchEffect} from "vue";
+import {reactive, onMounted} from "vue";
 import {useStore} from "@/store/index.js";
 import {ElMessage} from "element-plus";
 const store = useStore()
@@ -19,6 +19,15 @@ const userTable = reactive({
   total: 0,
   data: []
 })
+
+// 加载用户列表
+function loadUserList() {
+  apiUserList(userTable.page, userTable.size, data => {
+    userTable.total = data.total
+    userTable.data = data.list
+  })
+}
+
 function openUserEditor(user) {
   editor.id = user.id
   editor.display = true
@@ -47,73 +56,85 @@ function saveUserDetail(){
     ElMessage.success('数据保存成功')
   })
 }
-watchEffect(() => apiUserList(userTable.page, userTable.size, data => {
-  userTable.total = data.total
-  userTable.data = data.list
-}))
+// 组件挂载时加载数据
+onMounted(() => {
+  loadUserList()
+})
 
 </script>
 
 <template>
-  <div class="user-admin">
-    <div class="title">
-      <el-icon><User/></el-icon>
-      论坛用户列表
-    </div>
-    <div class="desc">
-      在这里管理论坛得所有用户，包括账户信息、封禁和禁言处理
-    </div>
-    <el-table :data="userTable.data" height="320">
-      <el-table-column prop="id" label="编号" width="80"/>
-      <el-table-column label="用户名" width="180">
-        <template #default="{ row }">
-          <div class="table-username">
-            <el-avatar :size="30" :src="store.avatarUserUrl(row.avatar)"/>
-            <div>{{ row.username }}</div>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="角色" width="100" align="center">
-        <template #default="{ row }">
-          <el-tag type="danger" v-if="row.role === 'admin'">管理员</el-tag>
-          <el-tag v-else>普通用户</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="email" label="电子邮件"/>
-      <el-table-column label="注册时间">
-        <template #default="{ row }">
-          {{ new Date(row.registerTime).toLocaleString() }}
-        </template>
-      </el-table-column>
-      <el-table-column label="状态" align="center">
-        <template #default="{ row }">
-          {{userStatus(row)}}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center">
-        <template #default="{ row }">
-          <el-button type="success" size="small" :icon="EditPen"
-                     @click="openUserEditor(row)"
-                     :disabled="row.role === 'admin'">编辑</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <div class="pagination">
-      <el-pagination :total="userTable.total"
-                     v-model:current-page="userTable.page"
-                     v-model:page-size="userTable.size"
-                     layout="total, sizes, prev, pager, next, jumper"/>
-    </div>
-    <el-drawer v-model="editor.display">
+  <div style="padding: 10px 20px">
+    <el-card>
       <template #header>
-        <div>
-          <div style="font-weight: bold">
-            <el-icon><EditPen/></el-icon> 编辑用户信息
-          </div>
-          <div style="font-size: 13px">编辑完成后请点击下方保存按钮</div>
+        <div class="card-header">
+          <span>社区用户列表</span>
         </div>
       </template>
-      <el-form label-position="top">
+     <div class="desc">
+        在这里管理社区的所有用户信息
+      </div>
+      <!-- 搜索区域 -->
+      <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
+        <div class="search-area">
+          <!-- 这里可以添加搜索功能 -->
+        </div>
+      </div>
+
+      <!-- 表格区域 -->
+      <el-table :data="userTable.data" style="width: 100%" border height="600">
+        <el-table-column prop="id" label="编号" width="80"/>
+        <el-table-column label="用户名" width="180">
+          <template #default="{ row }">
+            <div class="table-username">
+              <el-avatar :size="30" :src="store.avatarUserUrl(row.avatar)"/>
+              <div>{{ row.username }}</div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="角色" width="100" align="center">
+          <template #default="{ row }">
+            <el-tag type="danger" v-if="row.role === 'admin'">管理员</el-tag>
+            <el-tag v-else>普通用户</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="email" label="电子邮件"/>
+        <el-table-column label="注册时间">
+          <template #default="{ row }">
+            {{ new Date(row.registerTime).toLocaleString() }}
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" align="center">
+          <template #default="{ row }">
+            {{userStatus(row)}}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" width="120">
+          <template #default="{ row }">
+            <el-button type="success" size="small" :icon="EditPen"
+                       @click="openUserEditor(row)"
+                       :disabled="row.role === 'admin'">编辑</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页组件 -->
+      <div style="margin-top: 15px; display: flex; justify-content: center">
+        <el-pagination
+            v-model:current-page="userTable.page"
+            v-model:page-size="userTable.size"
+            :page-sizes="[5, 10, 20, 50]"
+            :total="userTable.total"
+            layout="total, sizes, prev, pager, next, jumper"
+            @size-change="loadUserList"
+            @current-change="loadUserList"
+        />
+      </div>
+    </el-card>
+
+    <!-- 编辑对话框 -->
+    <el-dialog v-model="editor.display" title="编辑用户信息" width="500" draggable>
+      <el-form :model="editor.temp" label-width="80px" ref="formRef">
         <el-form-item label="用户名">
           <el-input v-model="editor.temp.username"/>
         </el-form-item>
@@ -137,12 +158,12 @@ watchEffect(() => apiUserList(userTable.page, userTable.size, data => {
         <el-divider/>
       </el-form>
       <template #footer>
-        <div style="text-align: center">
-          <el-button type="success" @click="saveUserDetail">保存</el-button>
-          <el-button type="info" @click="editor.display = false">取消</el-button>
-        </div>
+        <span class="dialog-footer">
+          <el-button @click="editor.display = false">取消</el-button>
+          <el-button type="primary" @click="saveUserDetail">保存</el-button>
+        </span>
       </template>
-    </el-drawer>
+    </el-dialog>
   </div>
 </template>
 
@@ -175,4 +196,11 @@ watchEffect(() => apiUserList(userTable.page, userTable.size, data => {
     margin-bottom: 0;
   }
 }
+
+.desc{
+  color: #bababa;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
 </style>
