@@ -65,6 +65,15 @@ function addAdminTab(menu){
 }
 
 onMounted(() => {
+  // 监听来自子组件的添加标签页事件
+  window.addEventListener('addAdminTab', (event) => {
+    const menuItem = event.detail
+    if (menuItem) {
+      addAdminTab(menuItem)
+    }
+  })
+  
+  // 添加默认标签页
   const initPage = adminMenu
       .flatMap(menu => menu.sub)
       .find(sub => sub.index === route.fullPath)

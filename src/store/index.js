@@ -56,6 +56,11 @@ export const useStore = defineStore('general',{
         return `${axios.defaults.baseURL}/images${avatar}`
       else
         return 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
+    },activityUrl(picture){
+      if(picture)
+        return `${axios.defaults.baseURL}/images${picture}`
+      else
+        return 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
     }
   }
 })

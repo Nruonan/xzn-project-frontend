@@ -115,6 +115,18 @@ const router = createRouter({
           ]
         },
         {
+          path: 'activity',
+          name: 'activity',
+          component: () => import('../views/activity/Activity.vue'),
+          children: [
+            {
+              path: '',
+              name: 'activity-list',
+              component: () => import('../views/activity/ActivityList.vue')
+            }
+          ]
+        },
+        {
           path: 'relax',
           name: 'relax',
           component: () => import('../views/relax/Relax.vue'),
