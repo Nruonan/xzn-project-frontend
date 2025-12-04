@@ -180,12 +180,12 @@ onMounted(() => {
       <template #header>
         <div class="card-header">
           <el-icon><Document /></el-icon>
-          论坛帖子管理
+          社区帖子管理
         </div>
       </template>
       
       <div class="desc">
-        在这里管理论坛的所有帖子内容
+        在这里管理社区的所有帖子内容
       </div>
       
       <!-- 操作区域 -->

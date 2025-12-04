@@ -6,25 +6,15 @@
             <el-image  src="https://vignette.wikia.nocookie.net/onepiece/images/8/89/Wiki-wordmark.png/revision/latest/scale-to-height-down/40"></el-image>
           </div>
           <div style="flex: 1; text-align: center; padding: 0 20px; "  >
-            <el-input v-model="search.text" style="width: 100%; max-width: 500px; " placeholder="搜索论坛相关内容...">
-              <template #prefix>
-                <el-icon><Search/></el-icon>
-              </template>
+            <el-input v-model="search.text" style="width: 100%; max-width: 500px; " placeholder="搜索社区帖子相关内容...">
               <template #append>
-                <div class="select_btn">
-                  <el-select :teleported="false"  v-model="search.type" style="width: 120px">
-                    <el-option value="1" label="帖子广场"/>
-                    <el-option value="2" label="校园公告"/>
-                    <el-option value="3" label="校园活动"/>
-                    <el-option value="4" label="失物招领"/>
-                  </el-select>
-                </div>
-
+                <el-button :icon="Search" @click="handleSearch" />
               </template>
             </el-input>
-            </div>
+          </div>
+          
             <div style="margin-right: 15px">
-                <el-switch
+                <el-switch  
                     size="default"
                     v-model="isDark"
                     style="--el-switch-on-color: #000000; --el-switch-off-color: #d5d5d5"
@@ -186,6 +176,11 @@ function confirmNotification(id,url){
 function deleteAllNotification(){
   apiNotificationDeleteAll(loadNotification)
 }
+
+function handleSearch() {
+  // 这里可以添加搜索逻辑，比如跳转到搜索页面或打开搜索对话框
+  console.log('搜索功能被点击')
+}
 </script>
 
 <style scoped lang="less">
@@ -315,14 +310,14 @@ function deleteAllNotification(){
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
-:deep(.el-menu-item) {
-  position: relative;
-  margin: 5px 15px; // 增大外边距
-  border-radius: 8px; // 稍微增大圆角
-  transition: all 0.3s;
-  font-size: 15px;
-  padding: 12px 20px; // 增加内边距
-}
+// :deep(.el-menu-item) {
+//   position: relative;
+//   margin: 5px 5px; // 增大外边距
+//   border-radius: 58px; // 稍微增大圆角
+//   transition: all 0.3s;
+//   font-size: 14px;
+//   padding: 5px 5px; // 增加内边距
+// }
 
 :deep(.el-menu-item:hover) {
   background-color: var(--el-menu-hover-bg-color);

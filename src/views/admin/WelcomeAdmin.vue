@@ -27,7 +27,9 @@ const statistics = ref({
   orderCount: 0,
   noticeCount: 0,
   activityCount: 0,
-  todayRegisterCount: 0
+  todayRegisterCount: 0,
+  ruleCount: 0,
+  productCount: 0
 })
 
 // 获取管理员统计数据
@@ -44,6 +46,7 @@ const fetchStatistics = () => {
       commentCount: 0,
       orderCount: 0,
       noticeCount: 0,
+      ruleCount: 0,
       activityCount: 0,
       todayRegisterCount: 0
     }
@@ -65,7 +68,7 @@ const handleQuickAction = (action) => {
   // 通过事件总线触发父组件的addAdminTab方法
   const adminMenu = [
     {
-      title: '校园论坛管理', 
+      title: '技术社区管理', 
       sub: [
         { title: '用户管理', index: '/admin/user' },
         { title: '帖子广场管理', index: '/admin/forum' },
@@ -188,8 +191,19 @@ onMounted(() => {
               <el-icon><Timer /></el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-number">{{ statistics.todayRegisterCount }}</div>
-              <div class="stat-label">今日新增</div>
+              <div class="stat-number">{{ statistics.productCount }}</div>
+              <div class="stat-label">产品数量</div>
+            </div>
+          </div>
+        </el-col>
+         <el-col :xs="24" :sm="12" :md="8" :lg="6">
+          <div class="stat-card">
+            <div class="stat-icon today">
+              <el-icon><Timer /></el-icon>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ statistics.ruleCount }}</div>
+              <div class="stat-label">规则数量</div>
             </div>
           </div>
         </el-col>
@@ -220,7 +234,7 @@ onMounted(() => {
                 <el-icon><Monitor /></el-icon>
                 <span>系统版本</span>
               </div>
-              <div class="info-value">校园论坛 v2.1.0</div>
+              <div class="info-value">青轻社区 v2.1.0</div>
             </div>
           </el-col>
           <el-col :xs="24" :sm="12" :md="8">
