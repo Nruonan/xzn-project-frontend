@@ -26,8 +26,6 @@ const adminMenu = [
       {title: '帖子广场管理', icon: ChatDotSquare, index: '/admin/forum'},
       {title: '帖子评论管理', icon: Notification, index: '/admin/comment'},
       {title: '帖子类型管理', icon: Collection, index: '/admin/type'},
-      {title: '神券抢购管理', icon: Money, index: '/admin/ticket'},
-      {title: '神券订单管理', icon: Bell, index: '/admin/order'},
       {title: '公告管理', icon: Document, index: '/admin/notice'},
       {title: '活动管理', icon: ToiletPaper, index: '/admin/activity'},
     ]

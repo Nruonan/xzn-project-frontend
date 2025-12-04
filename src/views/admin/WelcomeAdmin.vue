@@ -24,7 +24,6 @@ const statistics = ref({
   userCount: 0,
   topicCount: 0,
   commentCount: 0,
-  ticketCount: 0,
   orderCount: 0,
   noticeCount: 0,
   activityCount: 0,
@@ -43,7 +42,6 @@ const fetchStatistics = () => {
       userCount: 0,
       topicCount: 0,
       commentCount: 0,
-      ticketCount: 0,
       orderCount: 0,
       noticeCount: 0,
       activityCount: 0,
@@ -57,7 +55,7 @@ const fetchStatistics = () => {
 const quickActions = [
   { title: '用户管理', path: '/admin/user', icon: 'User', type: 'primary' },
   { title: '帖子管理', path: '/admin/forum', icon: 'ChatDotSquare', type: 'success' },
-  { title: '神券管理', path: '/admin/ticket', icon: 'Money', type: 'warning' },
+  
   { title: '公告管理', path: '/admin/notice', icon: 'Document', type: 'danger' },
   { title: '积分订单', path: '/admin/point-order', icon: 'Document', type: 'info' }
 ]
@@ -71,7 +69,7 @@ const handleQuickAction = (action) => {
       sub: [
         { title: '用户管理', index: '/admin/user' },
         { title: '帖子广场管理', index: '/admin/forum' },
-        { title: '神券抢购管理', index: '/admin/ticket' },
+        
         { title: '公告管理', index: '/admin/notice' }
       ]
     }
@@ -150,17 +148,7 @@ onMounted(() => {
             </div>
           </div>
         </el-col>
-        <el-col :xs="24" :sm="12" :md="8" :lg="6">
-          <div class="stat-card">
-            <div class="stat-icon ticket">
-              <el-icon><Money /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ statistics.ticketCount }}</div>
-              <div class="stat-label">神券数量</div>
-            </div>
-          </div>
-        </el-col>
+        
         <el-col :xs="24" :sm="12" :md="8" :lg="6">
           <div class="stat-card">
             <div class="stat-icon order">
@@ -352,9 +340,7 @@ onMounted(() => {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
-.stat-icon.ticket {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
+
 
 .stat-icon.order {
   background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);

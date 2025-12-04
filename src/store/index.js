@@ -16,10 +16,7 @@ export const useStore = defineStore('general',{
       forum: {
         types: [],
       },
-      ticket:{
-        types:[],
-        tickets: 0,
-      }
+      
     }
   },getters:{
     avatarUrl(){
@@ -44,13 +41,7 @@ export const useStore = defineStore('general',{
       }
       return false
     },
-    findTicketTypeById(id){
-      for (let type of this.ticket.types) {
-        if (type.id === id){
-          return type
-        }
-      }
-    },
+    
     avatarUserUrl(avatar){
       if(avatar)
         return `${axios.defaults.baseURL}/images${avatar}`

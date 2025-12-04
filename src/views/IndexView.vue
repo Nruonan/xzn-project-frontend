@@ -14,10 +14,9 @@
                 <div class="select_btn">
                   <el-select :teleported="false"  v-model="search.type" style="width: 120px">
                     <el-option value="1" label="帖子广场"/>
-                    <el-option value="2" label="神券抢购"/>
-                    <el-option value="3" label="校园公告"/>
-                    <el-option value="4" label="校园活动"/>
-                    <el-option value="5" label="失物招领"/>
+                    <el-option value="2" label="校园公告"/>
+                    <el-option value="3" label="校园活动"/>
+                    <el-option value="4" label="失物招领"/>
                   </el-select>
                 </div>
 
@@ -46,7 +45,7 @@
               <el-menu
                   router
                   :default-active="$route.path"
-                  :default-openeds="['1','2','3','/index/market']"
+                  :default-openeds="['1','2','3']"
               >
                 <el-sub-menu :index="(index + 1).toString()"
                              v-for="(menu, index) in userMenu" :key="index">
@@ -151,15 +150,7 @@ let userMenu = [
       { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
       { title: '热门帖子', icon: Collection, index: '/index/hot' },
       { title: '草稿箱', icon: Document, index: '/index/drafts' },
-      {
-        title: '神券抢购',
-        icon: Money,
-        index: '/index/market',
-        sub: [
-          { title: '神券列表', icon: Goods, index: '/index/market' },
-          { title: '订单详情', icon: Files, index: '/index/market/ticket/orders' }
-        ]
-      },
+      
       { title: '校园公告', icon: Document, index: '/index/notice' },
       { title: '消息通知', icon: Bell, index: '/index/notification' },
       { title: '校园活动', icon: Notification, index: '/index/activity'},

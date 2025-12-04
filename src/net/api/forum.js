@@ -108,10 +108,10 @@ export const apiAdminTopicTypeCreate = (data, success) =>
     post('/api/admin/topic-type/create', data, success)
 
 export const apiAdminTopicTypeUpdate = (data, success) =>
-    post('/api/admin//topic-type/update', data, success)
+    post('/api/admin/topic-type/update', data, success)
 
 export const apiAdminTopicTypeRemove = (id, success) =>
-    get(`/api/admin//topic-type/delete?id=${id}`, success)
+    get(`/api/admin/topic-type/delete?id=${id}`, success)
 
 export const apiAdminTopicTypeDetail = (id, success) =>
-    get(`/api/admin//topic-type/detail?id=${id}`, success)
+    get(`/api/admin/topic-type/detail?id=${id}`, success)

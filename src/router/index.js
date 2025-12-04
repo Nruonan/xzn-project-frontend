@@ -74,28 +74,6 @@ const router = createRouter({
               component: () => import('../views/Draft/DraftList.vue')
             },
           ]
-        },
-        {
-          path: 'market',
-          name: 'market',
-          component: () => import('../views/market/Market.vue'),
-          children: [
-            {
-              path: '',
-              name: 'ticket-list',
-              component: () => import('../views/market/TicketList.vue')
-            },
-            {
-              path: 'ticket-order/:tid',
-              name: 'ticket-order',
-              component: () => import('../views/market/TicketOrder.vue')
-            },
-            {
-              path: 'ticket/orders',
-              name: 'orders',
-              component: () => import('../views/market/Orders.vue')
-            }
-          ]
         } ,
         {
           path: 'notice',
@@ -172,17 +150,9 @@ const router = createRouter({
           name: 'admin-forum',
           component: () => import('../views/admin/ForumAdmin.vue')
         },{
-          path: 'ticket',
-          name: 'admin-ticket',
-          component: () => import('../views/admin/TicketAdmin.vue')
-        },{
           path: 'user',
           name: 'admin-user',
           component: () => import('../views/admin/UserAdmin.vue')
-        },{
-          path: 'order',
-          name: 'admin-order',
-          component: () => import('../views/admin/OrderAdmin.vue')
         },{
           path: 'comment',
           name: 'admin-comment',
