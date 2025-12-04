@@ -146,7 +146,7 @@ const isDark = useDark()
 const notification = ref([])
 let userMenu = [
   {
-    title: '校园论坛', icon: Location, sub: [
+    title: '技术社区', icon: Location, sub: [
       { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
       { title: '热门帖子', icon: Collection, index: '/index/hot' },
       { title: '草稿箱', icon: Document, index: '/index/drafts' },
