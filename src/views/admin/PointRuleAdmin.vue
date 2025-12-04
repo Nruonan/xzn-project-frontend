@@ -23,6 +23,7 @@
               <el-select v-model="searchType" placeholder="请选择动作类型" clearable style="width: 150px">
                 <el-option label="发帖" value="post" />
                 <el-option label="评论" value="comment" />
+                <el-option label="收藏" value="collect" />
                 <el-option label="点赞" value="like" />
               </el-select>
             </el-form-item>
@@ -40,8 +41,9 @@
         <el-table-column prop="type" label="动作类型" width="140" align="center">
           <template #default="scope">
             <el-tag v-if="scope.row.type === 'post'" type="success">发帖</el-tag>
-            <el-tag v-else-if="scope.row.type === 'comment'" type="primary">评论</el-tag>
-            <el-tag v-else-if="scope.row.type === 'like'" type="warning">点赞</el-tag>
+            <el-tag v-else-if="scope.row.type === 'like'" type="primary">点赞</el-tag>
+            <el-tag v-else-if="scope.row.type === 'collect'" type="info">收藏</el-tag>
+            <el-tag v-else-if="scope.row.type === 'comment'" type="warning">评论</el-tag>
             <el-tag v-else>{{ scope.row.type }}</el-tag>
           </template>
         </el-table-column>
@@ -100,6 +102,7 @@
             <el-option label="发帖" value="post" />
             <el-option label="评论" value="comment" />
             <el-option label="点赞" value="like" />
+            <el-option label="收藏" value="collect" />
           </el-select>
         </el-form-item>
         <el-form-item label="积分" prop="score">

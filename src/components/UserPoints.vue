@@ -1,71 +1,133 @@
 <template>
   <Card :icon="Money" title="我的积分" desc="查看我的积分余额和积分明细">
-    <div class="points-summary">
-      <div class="points-balance">
-        <div class="balance-label">当前积分余额</div>
-        <div class="balance-value">{{ pointsBalance }}</div>
-      </div>
-      <el-button type="primary" @click="goToPointsDetail" round>
-        <el-icon><View /></el-icon>
-        查看积分明细
-      </el-button>
+    <div v-if="loading" class="loading-container">
+      <el-icon class="is-loading loading-icon">
+        <Loading />
+      </el-icon>
+      <div class="loading-text">加载中...</div>
     </div>
     
-    <div class="points-stats">
-      <div class="stat-item">
-        <div class="stat-label">今日获得</div>
-        <div class="stat-value positive">+{{ todayEarned }}</div>
+    <div v-else>
+      <div class="points-summary">
+        <div class="points-balance">
+          <div class="balance-label">当前积分余额</div>
+          <div class="balance-value">{{ pointsBalance }}</div>
+        </div>
+        <el-button type="primary" @click="goToPointsDetail" round>
+          <el-icon><View /></el-icon>
+          查看积分明细
+        </el-button>
       </div>
-      <div class="stat-item">
-        <div class="stat-label">本月获得</div>
-        <div class="stat-value positive">+{{ monthEarned }}</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">累计消费</div>
-        <div class="stat-value negative">-{{ totalSpent }}</div>
+      
+      <div class="points-stats">
+        <div class="stat-item">
+          <div class="stat-label">今日获得</div>
+          <div class="stat-value positive">+{{ todayEarned }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">本月获得</div>
+          <div class="stat-value positive">+{{ monthEarned }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">累计消费</div>
+          <div class="stat-value negative">-{{ totalSpent }}</div>
+        </div>
       </div>
     </div>
   </Card>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import Card from './Card.vue'
-import { Money, View } from '@element-plus/icons-vue'
+import { Money, View, Loading } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/store/index.js'
-import { ref, onMounted } from 'vue'
+import { getUserPoints, getPointStatistics } from '@/net/api/point.js'
 
 const router = useRouter()
 const store = useStore()
 
-// 模拟积分数据
-const pointsBalance = ref(1250)
-const todayEarned = ref(15)
-const monthEarned = ref(120)
-const totalSpent = ref(350)
+// 积分余额和统计信息
+const pointsBalance = ref(0)
+const todayEarned = ref(0)
+const monthEarned = ref(0)
+const totalSpent = ref(0)
+const loading = ref(true) // 添加加载状态
 
-// 跳转到积分明细页面
-const goToPointsDetail = () => {
-  // 跳转到用户积分明细页面
-  router.push({
-    name: 'points-detail'
+// 获取用户积分信息
+const loadUserPoints = () => {
+  loading.value = true // 开始加载
+  
+  // 使用Promise.all等待两个请求都完成
+  Promise.all([
+    new Promise((resolve, reject) => {
+      // 获取当前积分余额
+      getUserPoints((data) => {
+        resolve(data)
+      }, (message) => {
+        console.error('获取用户积分失败:', message)
+        reject(message)
+      })
+    }),
+    new Promise((resolve, reject) => {
+      // 获取积分统计信息
+      getPointStatistics((data) => {
+        resolve(data)
+      }, (message) => {
+        console.error('获取积分统计信息失败:', message)
+        reject(message)
+      })
+    })
+  ]).then(([pointsData, statisticsData]) => {
+    // 设置积分余额
+    pointsBalance.value = pointsData.points || 0
+    
+    // 设置统计信息
+    // 根据后端API返回的字段名设置对应的值
+    // 后端返回的字段名：currentPoints, todayConsumedPoints, monthConsumedPoints, totalConsumedPoints
+    pointsBalance.value = statisticsData.currentPoints || pointsBalance.value
+    todayEarned.value = statisticsData.todayEarnedPoints || 0
+    monthEarned.value = statisticsData.monthEarnedPoints || 0
+    totalSpent.value = statisticsData.totalConsumedPoints || 0
+  }).catch((error) => {
+    console.error('加载积分数据失败:', error)
+  }).finally(() => {
+    loading.value = false // 加载完成
   })
 }
 
-// 组件挂载时可以在这里请求真实数据
+// 跳转到积分明细页面
+const goToPointsDetail = () => {
+  router.push('/index/points-detail')
+}
+
+// 初始化
 onMounted(() => {
-  // 这里可以调用API获取真实的积分数据
-  // 例如：
-  // apiGetUserPoints(store.user.id, (data) => {
-  //   pointsBalance.value = data.balance
-  //   todayEarned.value = data.todayEarned
-  //   monthEarned.value = data.monthEarned
-  //   totalSpent.value = data.totalSpent
-  // })
+  loadUserPoints()
 })
 </script>
 
 <style scoped lang="less">
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 0;
+  
+  .loading-icon {
+    font-size: 24px;
+    color: #409eff;
+    margin-bottom: 10px;
+  }
+  
+  .loading-text {
+    font-size: 14px;
+    color: #909399;
+  }
+}
+
 .points-summary {
   display: flex;
   justify-content: space-between;

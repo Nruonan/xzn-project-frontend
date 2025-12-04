@@ -24,7 +24,6 @@
                 <el-option label="待处理" value="0" />
                 <el-option label="已发货" value="1" />
                 <el-option label="已完成" value="2" />
-                <el-option label="已取消" value="3" />
               </el-select>
             </el-form-item>
             <el-form-item label="用户名">
@@ -65,7 +64,7 @@
             <el-tag
               :type="scope.row.status === 0 ? 'warning' : 
                      scope.row.status === 1 ? 'primary' : 
-                     scope.row.status === 2 ? 'success' : 'danger'"
+                      'success'"
             >
               {{ scope.row.status === 0 ? '待处理' : 
                  scope.row.status === 1 ? '已发货' : 
@@ -99,14 +98,6 @@
               @click="updateOrderStatus(scope.row, 2)"
             >
               完成
-            </el-button>
-            <el-button 
-              v-if="scope.row.status === 0" 
-              size="small" 
-              type="danger"
-              @click="updateOrderStatus(scope.row, 3)"
-            >
-              取消
             </el-button>
           </template>
         </el-table-column>
@@ -145,15 +136,15 @@
             >
               {{ selectedOrder.status === 0 ? '待处理' : 
                  selectedOrder.status === 1 ? '已发货' : 
-                 selectedOrder.status === 2 ? '已完成' : '已取消' }}
+                  '已完成'  }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="商品名称">{{ selectedOrder.productName }}</el-descriptions-item>
           <el-descriptions-item label="商品图片">
             <el-image
-              v-if="selectedOrder.productImage"
-              :src="selectedOrder.productImage"
-              :preview-src-list="[selectedOrder.productImage]"
+              v-if="selectedOrder.image"
+              :src="store.productUrl(selectedOrder.image)"
+              :preview-src-list="[selectedOrder.image]"
               fit="cover"
               style="width: 100px; height: 100px;"
             />
@@ -161,8 +152,6 @@
           <el-descriptions-item label="数量">{{ selectedOrder.count }}</el-descriptions-item>
           <el-descriptions-item label="积分">{{ selectedOrder.payScore }}</el-descriptions-item>
           <el-descriptions-item label="下单时间">{{ formatDateTime(selectedOrder.createTime) }}</el-descriptions-item>
-          <el-descriptions-item label="发货时间">{{ formatDateTime(selectedOrder.shipTime) }}</el-descriptions-item>
-          <el-descriptions-item label="完成时间">{{ formatDateTime(selectedOrder.completeTime) }}</el-descriptions-item>
           <el-descriptions-item label="收货人">{{ selectedOrder.username }}</el-descriptions-item>
           <el-descriptions-item label="联系电话">{{ selectedOrder.phone }}</el-descriptions-item>
           <el-descriptions-item label="收货地址" :span="2">{{ selectedOrder.address }}</el-descriptions-item>
@@ -176,8 +165,14 @@
 import { Document, Search, ShoppingCart } from '@element-plus/icons-vue'
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { get, post } from '@/net'
+import { useStore } from '@/store/index.js'
+import { 
+  getPointsOrderListAdmin, 
+  updatePointsOrderStatusAdmin 
+} from '@/net/api/point.js'
 
+// 使用store
+const store = useStore()
 // 搜索条件
 const searchStatus = ref('')
 const searchUsername = ref('')
@@ -213,29 +208,43 @@ const formatDateTime = (dateTime) => {
 
 // 获取表格数据
 const getTableData = () => {
-  const params = {
-    pageNum: pagination.pageNum,
-    pageSize: pagination.pageSize,
-    status: searchStatus.value || undefined,
-    username: searchUsername.value || undefined
+  let status = searchStatus.value
+  if (status) {
+    if (status === "pending") {
+      status = 0
+    } else if (status === "shipped") {
+      status = 1
+    } else if (status === "completed") {
+      status = 2
+    }
   }
-  
-  // 构建查询字符串
-  const queryString = Object.keys(params)
-    .filter(key => params[key] !== undefined && params[key] !== '')
-    .map(key => `${key}=${encodeURIComponent(params[key])}`)
-    .join('&')
-  
-  const url = queryString ? `/api/admin/point/order/list?${queryString}` : '/api/admin/point/order/list'
-  
-  get(url, (data) => {
-    tableData.value = data.records || []
-    pagination.total = data.total || 0
-  }, (message) => {
-    ElMessage.error(message || '获取积分订单列表失败')
-    tableData.value = []
-    pagination.total = 0
-  })
+  getPointsOrderListAdmin(
+    pagination.pageNum,
+    pagination.pageSize,
+    searchStatus.value,
+    status,
+    (data) => {
+      tableData.value = data.records || []
+      pagination.total = data.total || 0
+      
+      // 如果有用户名过滤，在前端进行过滤（假设API不支持用户名过滤）
+      if (searchUsername.value) {
+        const filteredData = tableData.value.filter(item => {
+          return item.username && item.username.includes(searchUsername.value)
+        })
+        
+        // 更新总数和当前页数据
+        pagination.total = filteredData.length
+        const start = (pagination.pageNum - 1) * pagination.pageSize
+        const end = start + pagination.pageSize
+        tableData.value = filteredData.slice(start, end)
+      }
+    }, (message) => {
+      ElMessage.error(message || '获取积分订单列表失败')
+      tableData.value = []
+      pagination.total = 0
+    }
+  )
 }
 
 // 搜索处理
@@ -284,7 +293,13 @@ const updateOrderStatus = (row, status) => {
       type: 'warning'
     }
   ).then(() => {
-    get(`/api/admin/point/order/update-status?id=${row.id}&status=${status}`,  (response) => {
+    // 创建请求数据对象
+    const requestData = {
+      id: row.id,
+      status: status
+    }
+    
+    updatePointsOrderStatusAdmin(requestData, (response) => {
       // 检查响应数据
       if (response === true) {
         ElMessage.success(`${statusText}成功`)

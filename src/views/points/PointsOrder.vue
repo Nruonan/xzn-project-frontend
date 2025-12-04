@@ -24,7 +24,6 @@
             <el-option label="待发货" value="pending" />
             <el-option label="已发货" value="shipped" />
             <el-option label="已完成" value="completed" />
-            <el-option label="已取消" value="cancelled" />
           </el-select>
           <el-date-picker
             v-model="searchDateRange"
@@ -44,14 +43,13 @@
       <el-table :data="tableData" border style="width: 100%">
         <el-table-column prop="id" label="订单号" min-width="100" />
         <el-table-column prop="productName" label="商品名称" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="quantity" label="数量" min-width="80" />
-        <el-table-column prop="points" label="消耗积分" min-width="100" />
+        <el-table-column prop="count" label="数量" min-width="80" />
+        <el-table-column prop="payScore" label="消耗积分" min-width="100" />
         <el-table-column prop="status" label="状态" min-width="100">
           <template #default="scope">
-            <el-tag v-if="scope.row.status === 'pending'" type="warning">待发货</el-tag>
-            <el-tag v-else-if="scope.row.status === 'shipped'" type="primary">已发货</el-tag>
-            <el-tag v-else-if="scope.row.status === 'completed'" type="success">已完成</el-tag>
-            <el-tag v-else-if="scope.row.status === 'cancelled'" type="info">已取消</el-tag>
+            <el-tag v-if="scope.row.status === 0" type="warning">待发货</el-tag>
+            <el-tag v-else-if="scope.row.status === 1" type="primary">已发货</el-tag>
+            <el-tag v-else-if="scope.row.status === 2" type="success">已完成</el-tag>
             <el-tag v-else>{{ scope.row.status }}</el-tag>
           </template>
         </el-table-column>
@@ -88,24 +86,21 @@
           <el-descriptions-item label="订单号">{{ selectedOrder.id }}</el-descriptions-item>
           <el-descriptions-item label="商品名称">{{ selectedOrder.productName }}</el-descriptions-item>
           <el-descriptions-item label="商品图片">
-            <img :src="selectedOrder.productImage" alt="商品图片" class="product-image-detail" />
+            <img :src="store.productUrl(selectedOrder.productImage)" alt="商品图片" class="product-image-detail" />
           </el-descriptions-item>
-          <el-descriptions-item label="单价">{{ selectedOrder.points }} 积分</el-descriptions-item>
-          <el-descriptions-item label="数量">{{ selectedOrder.quantity }}</el-descriptions-item>
-          <el-descriptions-item label="总价">{{ selectedOrder.points * selectedOrder.quantity }} 积分</el-descriptions-item>
-          <el-descriptions-item label="收货人">{{ selectedOrder.receiverName }}</el-descriptions-item>
-          <el-descriptions-item label="联系电话">{{ selectedOrder.receiverPhone }}</el-descriptions-item>
-          <el-descriptions-item label="收货地址">{{ selectedOrder.receiverAddress }}</el-descriptions-item>
+          <el-descriptions-item label="单价">{{ selectedOrder.payScore / selectedOrder.count }} 积分</el-descriptions-item>
+          <el-descriptions-item label="数量">{{ selectedOrder.count }}</el-descriptions-item>
+          <el-descriptions-item label="总价">{{ selectedOrder.payScore}} 积分</el-descriptions-item>
+          <el-descriptions-item label="收货人">{{ selectedOrder.username }}</el-descriptions-item>
+          <el-descriptions-item label="联系电话">{{ selectedOrder.phone }}</el-descriptions-item>
+          <el-descriptions-item label="收货地址">{{ selectedOrder.address }}</el-descriptions-item>
           <el-descriptions-item label="状态">
-            <el-tag v-if="selectedOrder.status === 'pending'" type="warning">待发货</el-tag>
-            <el-tag v-else-if="selectedOrder.status === 'shipped'" type="primary">已发货</el-tag>
-            <el-tag v-else-if="selectedOrder.status === 'completed'" type="success">已完成</el-tag>
-            <el-tag v-else-if="selectedOrder.status === 'cancelled'" type="info">已取消</el-tag>
+            <el-tag v-if="selectedOrder.status === 0" type="warning">待发货</el-tag>
+            <el-tag v-else-if="selectedOrder.status === 1" type="primary">已发货</el-tag>
+            <el-tag v-else-if="selectedOrder.status === 2" type="success">已完成</el-tag>
             <el-tag v-else>{{ selectedOrder.status }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="下单时间">{{ formatDateTime(selectedOrder.createTime) }}</el-descriptions-item>
-          <el-descriptions-item label="发货时间">{{ selectedOrder.shipTime ? formatDateTime(selectedOrder.shipTime) : '未发货' }}</el-descriptions-item>
-          <el-descriptions-item label="完成时间">{{ selectedOrder.completeTime ? formatDateTime(selectedOrder.completeTime) : '未完成' }}</el-descriptions-item>
         </el-descriptions>
       </div>
       <template #footer>
@@ -129,11 +124,12 @@ import { Document, Search } from '@element-plus/icons-vue'
 import { reactive, ref, onMounted } from 'vue'
 import { useStore } from '@/store/index.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getUserPoints, getPointsOrderList, getPointsOrderDetail, cancelPointsOrder } from '@/net/api/point.js'
 
 const store = useStore()
 
 // 积分余额
-const pointsBalance = ref(1250)
+const pointsBalance = ref(0)
 
 // 搜索条件
 const searchStatus = ref('')
@@ -166,110 +162,41 @@ const formatDateTime = (dateTime) => {
   }).replace(/\//g, '-')
 }
 
-// 模拟静态数据（当前用户的数据）
-const mockData = [
-  { 
-    id: 'PO20231201001', 
-    uid: store.user.id, 
-    productName: '品牌保温杯', 
-    productImage: 'https://images.unsplash.com/photo-1545235617-9465d2a55698?w=200&h=200&fit=crop',
-    quantity: 1, 
-    points: 200, 
-    status: 'completed', 
-    createTime: '2023-12-01 10:30:00',
-    shipTime: '2023-12-02 09:15:00',
-    completeTime: '2023-12-05 16:45:00',
-    receiverName: '张三',
-    receiverPhone: '13800138000',
-    receiverAddress: '北京市朝阳区某某街道123号'
-  },
-  { 
-    id: 'PO20231202002', 
-    uid: store.user.id, 
-    productName: '定制笔记本', 
-    productImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=200&fit=crop',
-    quantity: 2, 
-    points: 120, 
-    status: 'shipped', 
-    createTime: '2023-12-02 14:20:00',
-    shipTime: '2023-12-03 11:30:00',
-    completeTime: null,
-    receiverName: '李四',
-    receiverPhone: '13900139000',
-    receiverAddress: '上海市浦东新区某某路456号'
-  },
-  { 
-    id: 'PO20231203003', 
-    uid: store.user.id, 
-    productName: '蓝牙耳机', 
-    productImage: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop',
-    quantity: 1, 
-    points: 800, 
-    status: 'pending', 
-    createTime: '2023-12-03 15:45:00',
-    shipTime: null,
-    completeTime: null,
-    receiverName: '王五',
-    receiverPhone: '13700137000',
-    receiverAddress: '广州市天河区某某大道789号'
-  },
-  { 
-    id: 'PO20231204004', 
-    uid: store.user.id, 
-    productName: '无线蓝牙鼠标', 
-    productImage: 'https://images.unsplash.com/photo-1527864550415-583f0d4e5ee4?w=200&h=200&fit=crop',
-    quantity: 1, 
-    points: 350, 
-    status: 'completed', 
-    createTime: '2023-12-04 09:20:00',
-    shipTime: '2023-12-05 10:15:00',
-    completeTime: '2023-12-08 14:30:00',
-    receiverName: '赵六',
-    receiverPhone: '13600136000',
-    receiverAddress: '深圳市南山区某某科技园101号'
-  },
-  { 
-    id: 'PO20231205005', 
-    uid: store.user.id, 
-    productName: '移动电源', 
-    productImage: 'https://images.unsplash.com/photo-1603794064635-bde31b041990?w=200&h=200&fit=crop',
-    quantity: 1, 
-    points: 500, 
-    status: 'cancelled', 
-    createTime: '2023-12-05 11:10:00',
-    shipTime: null,
-    completeTime: null,
-    receiverName: '孙七',
-    receiverPhone: '13500135000',
-    receiverAddress: '杭州市西湖区某某路202号'
-  }
-]
+// 获取用户积分
+const loadUserPoints = () => {
+  getUserPoints((data) => {
+    pointsBalance.value = data || 0
+  }, (message) => {
+    console.error('获取用户积分失败:', message)
+  })
+}
 
 // 获取表格数据
 const getTableData = () => {
-  // 模拟分页和筛选（只显示当前用户的数据）
-  let filteredData = mockData.filter(item => item.uid === store.user.id)
+  const startDate = searchDateRange.value && searchDateRange.value.length === 2 ? searchDateRange.value[0] : undefined
+  const endDate = searchDateRange.value && searchDateRange.value.length === 2 ? searchDateRange.value[1] : undefined
   
-  // 根据搜索条件过滤
-  if (searchStatus.value) {
-    filteredData = filteredData.filter(item => item.status === searchStatus.value)
-  }
-  
-  if (searchDateRange.value && searchDateRange.value.length === 2) {
-    const [startDate, endDate] = searchDateRange.value
-    filteredData = filteredData.filter(item => {
-      const itemDate = new Date(item.createTime).toISOString().split('T')[0]
-      return itemDate >= startDate && itemDate <= endDate
-    })
-  }
-  
-  // 设置总数
-  pagination.total = filteredData.length
-  
-  // 模拟分页
-  const start = (pagination.pageNum - 1) * pagination.pageSize
-  const end = start + pagination.pageSize
-  tableData.value = filteredData.slice(start, end)
+  getPointsOrderList(
+    pagination.pageNum,
+    pagination.pageSize,
+    searchStatus.value,
+    startDate,
+    endDate,
+    (data) => {
+      tableData.value = data.records || []
+      pagination.total = data.total || 0
+      
+      // 处理图片URL，使用store中的productUrl方法
+      tableData.value.forEach(order => {
+        if (order.productImage) {
+          order.productImage = store.productUrl(order.productImage)
+        }
+      })
+    }, (message) => {
+      console.error('获取订单列表失败:', message)
+      ElMessage.error('获取订单列表失败: ' + message)
+    }
+  )
 }
 
 // 搜索处理
@@ -302,41 +229,46 @@ const handleCurrentChange = (val) => {
 // 查看订单详情
 const viewOrderDetail = (order) => {
   selectedOrder.value = order
-  detailDialogVisible.value = true
+  getPointsOrderDetail(order.id, (data) => {
+    selectedOrder.value = data
+    // 处理图片URL
+    if (selectedOrder.value.productImage) {
+      selectedOrder.value.productImage = store.productUrl(selectedOrder.value.productImage)
+    }
+    detailDialogVisible.value = true
+  }, (message) => {
+    console.error('获取订单详情失败:', message)
+    ElMessage.error('获取订单详情失败: ' + message)
+  })
 }
 
 // 取消订单
 const cancelOrder = (order) => {
   ElMessageBox.confirm(
-    '确定要取消这个订单吗？',
-    '确认取消',
+    '确定要取消该订单吗？取消后将返还积分。',
+    '取消订单',
     {
-      confirmButtonText: '确认',
+      confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
     }
   ).then(() => {
-    // 模拟取消订单操作
-    const orderIndex = mockData.findIndex(item => item.id === order.id)
-    if (orderIndex !== -1) {
-      mockData[orderIndex].status = 'cancelled'
-      // 如果需要更新表格数据，重新加载
+    cancelPointsOrder(order.id, (data) => {
+      ElMessage.success('订单已取消，积分已返还')
       getTableData()
-      
-      // 更新选中的订单状态（如果详情对话框打开）
-      if (selectedOrder.value && selectedOrder.value.id === order.id) {
-        selectedOrder.value.status = 'cancelled'
-      }
-      
-      ElMessage.success('订单已取消')
-    }
+      loadUserPoints()
+    }, (message) => {
+      console.error('取消订单失败:', message)
+      ElMessage.error('取消订单失败: ' + message)
+    })
   }).catch(() => {
     // 用户取消操作
   })
 }
 
-// 组件挂载时获取数据
+// 初始化
 onMounted(() => {
+  loadUserPoints()
   getTableData()
 })
 </script>

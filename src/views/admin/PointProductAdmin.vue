@@ -196,10 +196,15 @@
 import { Plus, Search, ShoppingBag } from '@element-plus/icons-vue'
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { get, post } from '@/net'
 import { accessHeader } from '@/net/index.js'
 import { useStore } from '@/store/index.js'
 import axios from 'axios'
+import { 
+  getPointsProductListAdmin, 
+  createPointsProductAdmin, 
+  updatePointsProductAdmin, 
+  deletePointsProductAdmin 
+} from '@/net/api/point.js'
 
 // 使用store
 const store = useStore()
@@ -263,32 +268,19 @@ const formatDateTime = (dateTime) => {
 
 // 获取表格数据
 const getTableData = () => {
-  const params = {
-    pageNum: pagination.pageNum,
-    pageSize: pagination.pageSize
-  }
-  
-  // 添加搜索条件
-  if (searchName.value) {
-    params.name = searchName.value
-  }
-  
-  // 构建查询字符串
-  const queryString = Object.keys(params)
-    .filter(key => params[key] !== undefined && params[key] !== '')
-    .map(key => `${key}=${encodeURIComponent(params[key])}`)
-    .join('&')
-  
-  const url = queryString ? `/api/admin/point/product/list?${queryString}` : '/api/admin/point/product/list'
-  
-  get(url, (data) => {
-    tableData.value = data.records || []
-    pagination.total = data.total || 0
-  }, (message) => {
-    ElMessage.error(message || '获取积分商品列表失败')
-    tableData.value = []
-    pagination.total = 0
-  })
+  getPointsProductListAdmin(
+    pagination.pageNum,
+    pagination.pageSize,
+    searchName.value,
+    (data) => {
+      tableData.value = data.records || []
+      pagination.total = data.total || 0
+    }, (message) => {
+      ElMessage.error(message || '获取积分商品列表失败')
+      tableData.value = []
+      pagination.total = 0
+    }
+  )
 }
 
 // 搜索处理
@@ -360,7 +352,7 @@ const handleDelete = (row) => {
       type: 'warning'
     }
   ).then(() => {
-    get('/api/admin/point/product/delete?id=' + row.id,  () => {
+    deletePointsProductAdmin(row.id, () => {
       ElMessage.success('删除成功')
       getTableData()
     }, (message) => {
@@ -403,28 +395,37 @@ const handleSubmit = () => {
   formRef.value.validate((valid) => {
     if (valid) {
       const isEdit = !!form.id
-      const url = isEdit ? '/api/admin/point/product/update' : '/api/admin/point/product/create'
       
-      post(url, form, (data) => {
-        ElMessage.success(isEdit ? '更新成功' : '添加成功')
-        
-        // 如果是新建商品，更新form.id以便后续上传图片
-        if (!isEdit && data && data.id) {
-          form.id = data.id
-          // 如果有图片需要上传，提示用户重新上传
-          if (form.image && form.image.startsWith('blob:')) {
-            ElMessage.info('请重新上传商品图片')
+      if (isEdit) {
+        updatePointsProductAdmin(form, (data) => {
+          ElMessage.success('更新成功')
+          dialogVisible.value = false
+          getTableData()
+        }, (message) => {
+          ElMessage.error(message || '更新失败')
+        })
+      } else {
+        createPointsProductAdmin(form, (data) => {
+          ElMessage.success('添加成功')
+          
+          // 如果是新建商品，更新form.id以便后续上传图片
+          if (data && data.id) {
+            form.id = data.id
+            // 如果有图片需要上传，提示用户重新上传
+            if (form.image && form.image.startsWith('blob:')) {
+              ElMessage.info('请重新上传商品图片')
+            } else {
+              dialogVisible.value = false
+              getTableData()
+            }
           } else {
             dialogVisible.value = false
             getTableData()
           }
-        } else {
-          dialogVisible.value = false
-          getTableData()
-        }
-      }, (message) => {
-        ElMessage.error(message || (isEdit ? '更新失败' : '添加失败'))
-      })
+        }, (message) => {
+          ElMessage.error(message || '添加失败')
+        })
+      }
     }
   })
 }

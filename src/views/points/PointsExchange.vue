@@ -30,7 +30,7 @@
           <h3>{{ product.name }}</h3>
           <p class="product-description">{{ product.description }}</p>
           <div class="product-footer">
-            <span class="product-price">{{ product.price }} 积分</span>
+            <span class="product-price">{{ product.score }} 积分</span>
             <span class="product-stock">库存: {{ product.stock }}</span>
           </div>
           <el-button 
@@ -62,8 +62,8 @@
           <img :src="selectedProduct.image" :alt="selectedProduct.name" />
           <div>
             <h3>{{ selectedProduct.name }}</h3>
-            <p>兑换积分: {{ selectedProduct.price }}</p>
-            <p>兑换后剩余积分: {{ userPoints - selectedProduct.price }}</p>
+            <p>兑换积分: {{ selectedProduct.score }}</p>
+            <p>兑换后剩余积分: {{ userPoints - selectedProduct.score }}</p>
           </div>
         </div>
         <el-form :model="exchangeForm" label-width="80px">
@@ -71,21 +71,21 @@
             <el-input-number 
               v-model="exchangeForm.quantity" 
               :min="1" 
-              :max="Math.min(selectedProduct.stock, Math.floor(userPoints / selectedProduct.price))"
+              :max="Math.min(selectedProduct.stock, Math.floor(userPoints / selectedProduct.score))"
               @change="handleQuantityChange"
             />
           </el-form-item>
           <el-form-item label="总计积分">
-            <strong>{{ exchangeForm.quantity * selectedProduct.price }} 积分</strong>
+            <strong>{{ exchangeForm.quantity * selectedProduct.score }} 积分</strong>
           </el-form-item>
-          <el-form-item label="收货人" prop="receiverName" :rules="[{ required: true, message: '请输入收货人姓名', trigger: 'blur' }]">
-            <el-input v-model="exchangeForm.receiverName" placeholder="请输入收货人姓名" />
+          <el-form-item label="收货人" prop="username" :rules="[{ required: true, message: '请输入收货人姓名', trigger: 'blur' }]">
+            <el-input v-model="exchangeForm.username" placeholder="请输入收货人姓名" />
           </el-form-item>
-          <el-form-item label="联系电话" prop="receiverPhone" :rules="[{ required: true, message: '请输入联系电话', trigger: 'blur' }]">
-            <el-input v-model="exchangeForm.receiverPhone" placeholder="请输入联系电话" />
+          <el-form-item label="联系电话" prop="phone" :rules="[{ required: true, message: '请输入联系电话', trigger: 'blur' }]">
+            <el-input v-model="exchangeForm.phone" placeholder="请输入联系电话" />
           </el-form-item>
-          <el-form-item label="收货地址" prop="receiverAddress" :rules="[{ required: true, message: '请输入收货地址', trigger: 'blur' }]">
-            <el-input v-model="exchangeForm.receiverAddress" placeholder="请输入收货地址" type="textarea" />
+          <el-form-item label="收货地址" prop="address" :rules="[{ required: true, message: '请输入收货地址', trigger: 'blur' }]">
+            <el-input v-model="exchangeForm.address" placeholder="请输入收货地址" type="textarea" />
           </el-form-item>
         </el-form>
       </div>
@@ -100,217 +100,192 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { Search, ShoppingBag } from '@element-plus/icons-vue'
+import { reactive, ref, onMounted } from 'vue'
+import { useStore } from '@/store/index.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useStore } from '@/store'
+import { getUserPoints, getPointsProductList, createPointsOrder } from '@/net/api/point.js'
 
-// 使用 Pinia 获取用户信息
 const store = useStore()
-const userPoints = ref(1500) // 模拟用户积分余额
 
-// 商品数据
-const productList = ref([])
-const currentPage = ref(1)
-const pageSize = ref(8)
-const totalProducts = ref(0)
+// 积分余额
+const pointsBalance = ref(0)
+
+// 搜索条件
 const searchText = ref('')
 
-// 对话框相关
-const dialogVisible = ref(false)
-const selectedProduct = ref(null)
+// 分页数据
+const pagination = reactive({
+  pageNum: 1,
+  pageSize: 12,
+  total: 0
+})
+
+// 商品列表
+const productList = ref([])
+
+// 兑换表单
 const exchangeForm = reactive({
+  productId: null,
   quantity: 1,
-  receiverName: '',
-  receiverPhone: '',
-  receiverAddress: ''
+  username: '',
+  phone: '',
+  address: ''
 })
 
-// 模拟商品数据
-const mockProducts = [
-  {
-    id: 1,
-    name: '品牌保温杯',
-    price: 200,
-    stock: 15,
-    image: 'https://images.unsplash.com/photo-1545235617-9465d2a55698?w=200&h=200&fit=crop',
-    description: '优质不锈钢保温杯，保冷保热12小时'
-  },
-  {
-    id: 2,
-    name: '无线蓝牙鼠标',
-    price: 350,
-    stock: 8,
-    image: 'https://images.unsplash.com/photo-1527864550415-583f0d4e5ee4?w=200&h=200&fit=crop',
-    description: '人体工学设计，静音办公鼠标'
-  },
-  {
-    id: 3,
-    name: '移动电源',
-    price: 500,
-    stock: 12,
-    image: 'https://images.unsplash.com/photo-1603794064635-bde31b041990?w=200&h=200&fit=crop',
-    description: '20000mAh大容量，支持快充'
-  },
-  {
-    id: 4,
-    name: '蓝牙耳机',
-    price: 800,
-    stock: 5,
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop',
-    description: '降噪蓝牙耳机，音质出色'
-  },
-  {
-    id: 5,
-    name: '定制笔记本',
-    price: 120,
-    stock: 30,
-    image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&h=200&fit=crop',
-    description: '精美封面，内页顺滑书写'
-  },
-  {
-    id: 6,
-    name: '运动水壶',
-    price: 150,
-    stock: 20,
-    image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=200&h=200&fit=crop',
-    description: '环保材质，轻便易携'
-  },
-  {
-    id: 7,
-    name: '桌面绿植',
-    price: 180,
-    stock: 10,
-    image: 'https://images.unsplash.com/photo-1598983069272-d52571031d52?w=200&h=200&fit=crop',
-    description: '净化空气，美化办公环境'
-  },
-  {
-    id: 8,
-    name: '多功能插座',
-    price: 250,
-    stock: 18,
-    image: 'https://images.unsplash.com/photo-1595658658473-0a72d70b5bd0?w=200&h=200&fit=crop',
-    description: '带USB接口，安全保护'
-  }
-]
+// 兑换对话框
+const exchangeDialogVisible = ref(false)
+const currentProduct = ref(null)
 
-// 初始化数据
-onMounted(() => {
-  loadProducts()
-})
-
-// 加载商品数据
-const loadProducts = () => {
-  // 模拟分页和搜索
-  let filteredProducts = mockProducts
-  
-  if (searchText.value) {
-    filteredProducts = mockProducts.filter(product => 
-      product.name.toLowerCase().includes(searchText.value.toLowerCase())
-    )
-  }
-  
-  totalProducts.value = filteredProducts.length
-  const startIndex = (currentPage.value - 1) * pageSize.value
-  productList.value = filteredProducts.slice(startIndex, startIndex + pageSize.value)
+// 获取用户积分
+const loadUserPoints = () => {
+  getUserPoints((data) => {
+    pointsBalance.value = data || 0
+  }, (message) => {
+    console.error('获取用户积分失败:', message)
+  })
 }
 
-// 处理搜索
+// 获取商品列表
+const loadProducts = () => {
+  getPointsProductList(
+    pagination.pageNum,
+    pagination.pageSize,
+    searchText.value,
+    (data) => {
+      productList.value = data.records || []
+      pagination.total = data.total || 0
+      
+      // 处理图片URL
+      productList.value.forEach(product => {
+        if (product.image) {
+          product.image = store.productUrl(product.image)
+        }
+      })
+    }, (message) => {
+      console.error('获取商品列表失败:', message)
+      ElMessage.error('获取商品列表失败: ' + message)
+    }
+  )
+}
+
+// 搜索处理
 const handleSearch = () => {
-  currentPage.value = 1
+  pagination.pageNum = 1
   loadProducts()
 }
 
 // 重置搜索
 const resetSearch = () => {
   searchText.value = ''
-  currentPage.value = 1
+  pagination.pageNum = 1
   loadProducts()
 }
 
-// 处理分页变化
-const handlePageChange = () => {
+// 分页大小改变
+const handleSizeChange = (val) => {
+  pagination.pageSize = val
+  pagination.pageNum = 1
   loadProducts()
 }
 
-// 图片加载错误处理
-const handleImageError = (e) => {
-  e.target.src = 'https://via.placeholder.com/200x200?text=No+Image'
+// 当前页改变
+const handleCurrentChange = (val) => {
+  pagination.pageNum = val
+  loadProducts()
 }
 
-// 兑换商品
-const exchangeProduct = (product) => {
-  selectedProduct.value = product
+// 打开兑换对话框
+const openExchangeDialog = (product) => {
+  currentProduct.value = product
+  exchangeForm.productId = product.id
   exchangeForm.quantity = 1
-  dialogVisible.value = true
+  exchangeForm.username = ''
+  exchangeForm.phone = ''
+  exchangeForm.address = ''
+  exchangeDialogVisible.value = true
 }
 
-// 数量变化处理
-const handleQuantityChange = (value) => {
-  if (!selectedProduct.value) return
-  
-  const maxQuantity = Math.min(
-    selectedProduct.value.stock, 
-    Math.floor(userPoints.value / selectedProduct.value.price)
-  )
-  
-  if (value > maxQuantity) {
-    exchangeForm.quantity = maxQuantity
-  }
+// 关闭兑换对话框
+const closeExchangeDialog = () => {
+  exchangeDialogVisible.value = false
+  currentProduct.value = null
+  exchangeForm.productId = null
+  exchangeForm.quantity = 1
+  exchangeForm.username = ''
+  exchangeForm.phone = ''
+  exchangeForm.address = ''
 }
 
 // 确认兑换
 const confirmExchange = () => {
-  if (!selectedProduct.value) return
-  
-  // 检查收货信息是否填写
-  if (!exchangeForm.receiverName || !exchangeForm.receiverPhone || !exchangeForm.receiverAddress) {
-    ElMessage.error('请填写完整的收货信息')
+  // 表单验证
+  if (!exchangeForm.username.trim()) {
+    ElMessage.warning('请输入收货人姓名')
     return
   }
   
-  const totalCost = exchangeForm.quantity * selectedProduct.value.price
-  
-  if (userPoints.value < totalCost) {
-    ElMessage.error('积分不足')
+  if (!exchangeForm.phone.trim()) {
+    ElMessage.warning('请输入联系电话')
     return
   }
   
-  if (exchangeForm.quantity > selectedProduct.value.stock) {
-    ElMessage.error('库存不足')
+  if (!exchangeForm.address.trim()) {
+    ElMessage.warning('请输入收货地址')
     return
   }
   
-  // 模拟兑换过程
+  // 检查积分是否足够
+  const totalPoints = currentProduct.value.points * exchangeForm.quantity
+  if (totalPoints > pointsBalance.value) {
+    ElMessage.error('积分不足，无法兑换')
+    return
+  }
+  
+  // 确认对话框
   ElMessageBox.confirm(
-    `确定要兑换 ${exchangeForm.quantity} 个 ${selectedProduct.value.name} 吗？`,
+    `确定要兑换 ${exchangeForm.quantity} 件 ${currentProduct.value.name} 吗？将消耗 ${totalPoints} 积分。`,
     '确认兑换',
     {
-      confirmButtonText: '确认',
+      confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning',
     }
   ).then(() => {
-    // 更新用户积分和商品库存
-    userPoints.value -= totalCost
-    const productIndex = mockProducts.findIndex(p => p.id === selectedProduct.value.id)
-    if (productIndex !== -1) {
-      mockProducts[productIndex].stock -= exchangeForm.quantity
+    // 构建订单数据
+    const orderData = {
+      productId: exchangeForm.productId,
+      quantity: exchangeForm.quantity,
+      receiverName: exchangeForm.username,
+      receiverPhone: exchangeForm.phone,
+      receiverAddress: exchangeForm.address
     }
     
-    // 重新加载商品列表
-    loadProducts()
-    
-    // 关闭对话框并重置表单
-    dialogVisible.value = false
-    exchangeForm.receiverName = ''
-    exchangeForm.receiverPhone = ''
-    exchangeForm.receiverAddress = ''
-    
-    ElMessage.success('兑换成功！')
+    // 调用API创建订单
+    createPointsOrder(orderData, (data) => {
+      ElMessage.success('兑换成功！订单已生成')
+      closeExchangeDialog()
+      loadProducts()
+      loadUserPoints()
+    }, (message) => {
+      console.error('兑换失败:', message)
+      ElMessage.error('兑换失败: ' + message)
+    })
   }).catch(() => {
     // 用户取消操作
   })
 }
+
+// 处理图片加载错误
+const handleImageError = (e) => {
+  e.target.src = 'https://via.placeholder.com/200x200?text=商品图片'
+}
+
+// 初始化
+onMounted(() => {
+  loadUserPoints()
+  loadProducts()
+})
 </script>
 
 <style scoped lang="less">
@@ -537,3 +512,4 @@ const confirmExchange = () => {
   gap: 10px;
 }
 </style>
+

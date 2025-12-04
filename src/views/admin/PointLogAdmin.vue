@@ -26,7 +26,9 @@
               <el-select v-model="searchType" placeholder="请选择动作类型" clearable style="width: 150px">
                 <el-option label="发帖" value="post" />
                 <el-option label="评论" value="comment" />
+                <el-option label="兑换" value="exchange" />
                 <el-option label="点赞" value="like" />
+                <el-option label="收藏" value="collect" />
               </el-select>
             </el-form-item> 
           </el-form>
@@ -47,7 +49,9 @@
           <template #default="scope">
             <el-tag v-if="scope.row.type === 'exchange'" type="danger">兑换</el-tag>
             <el-tag v-else-if="scope.row.type === 'post'" type="success">发帖</el-tag>
-            <el-tag v-else-if="scope.row.type === 'sign'" type="primary">签到</el-tag>
+            <el-tag v-else-if="scope.row.type === 'like'" type="primary">点赞</el-tag>
+            <el-tag v-else-if="scope.row.type === 'collect'" type="info">收藏</el-tag>
+            <el-tag v-else-if="scope.row.type === 'comment'" type="warning">评论</el-tag>
             <el-tag v-else>{{ scope.row.type }}</el-tag>
           </template>
         </el-table-column>
@@ -87,7 +91,7 @@
 import { Document, Search } from '@element-plus/icons-vue'
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { get } from '@/net'
+import { getPointsLogListAdmin } from '@/net/api/point.js'
 
 // 搜索条件
 const searchType = ref('')
@@ -118,29 +122,34 @@ const formatDateTime = (dateTime) => {
 
 // 获取表格数据
 const getTableData = () => {
-  const params = {
-    pageNum: pagination.pageNum,
-    pageSize: pagination.pageSize,
-    type: searchType.value || undefined,
-    username: searchUsername.value || undefined
-  }
-  
-  // 构建查询字符串
-  const queryString = Object.keys(params)
-    .filter(key => params[key] !== undefined && params[key] !== '')
-    .map(key => `${key}=${encodeURIComponent(params[key])}`)
-    .join('&')
-  
-  const url = queryString ? `/api/admin/point/log/list?${queryString}` : '/api/admin/point/log/list'
-  
-  get(url, (data) => {
-    tableData.value = data.records || []
-    pagination.total = data.total || 0
-  }, (message) => {
-    ElMessage.error(message || '获取积分日志列表失败')
-    tableData.value = []
-    pagination.total = 0
-  })
+  getPointsLogListAdmin(
+    pagination.pageNum,
+    pagination.pageSize,
+    searchType.value,
+    undefined, // startDate
+    undefined, // endDate
+    (data) => {
+      tableData.value = data.records || []
+      pagination.total = data.total || 0
+      
+      // 如果有用户名过滤，在前端进行过滤（假设API不支持用户名过滤）
+      if (searchUsername.value) {
+        const filteredData = tableData.value.filter(item => {
+          return item.username && item.username.includes(searchUsername.value)
+        })
+        
+        // 更新总数和当前页数据
+        pagination.total = filteredData.length
+        const start = (pagination.pageNum - 1) * pagination.pageSize
+        const end = start + pagination.pageSize
+        tableData.value = filteredData.slice(start, end)
+      }
+    }, (message) => {
+      ElMessage.error(message || '获取积分日志列表失败')
+      tableData.value = []
+      pagination.total = 0
+    }
+  )
 }
 
 // 搜索处理

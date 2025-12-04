@@ -45,9 +45,9 @@
           <template #default="scope">
             <el-tag v-if="scope.row.type === 'exchange'" type="danger">兑换</el-tag>
             <el-tag v-else-if="scope.row.type === 'post'" type="success">发帖</el-tag>
-            <el-tag v-else-if="scope.row.type === 'sign'" type="primary">签到</el-tag>
+            <el-tag v-else-if="scope.row.type === 'like'" type="primary">点赞</el-tag>
+            <el-tag v-else-if="scope.row.type === 'collect'" type="info">收藏</el-tag>
             <el-tag v-else-if="scope.row.type === 'comment'" type="warning">评论</el-tag>
-            <el-tag v-else>{{ scope.row.type }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="score" label="积分变动" min-width="100">
@@ -85,11 +85,12 @@
 import { Money, Search } from '@element-plus/icons-vue'
 import { reactive, ref, onMounted } from 'vue'
 import { useStore } from '@/store/index.js'
+import { getUserPoints, getPointsLogList } from '@/net/api/point.js'
 
 const store = useStore()
 
 // 积分余额
-const pointsBalance = ref(1250)
+const pointsBalance = ref(0)
 
 // 搜索条件
 const searchType = ref('')
@@ -118,49 +119,61 @@ const formatDateTime = (dateTime) => {
   }).replace(/\//g, '-')
 }
 
-// 模拟静态数据（当前用户的数据）
-const mockData = [
-  { id: 1, uid: store.user.id, type: 'sign', score: +5, remark: '每日签到奖励', createTime: '2023-12-01 08:45:00' },
-  { id: 2, uid: store.user.id, type: 'post', score: +10, remark: '发布技术文章奖励', createTime: '2023-12-01 11:15:00' },
-  { id: 3, uid: store.user.id, type: 'exchange', score: -100, remark: '兑换保温杯', createTime: '2023-12-01 10:30:00' },
-  { id: 4, uid: store.user.id, type: 'sign', score: +5, remark: '每日签到奖励', createTime: '2023-12-02 09:30:00' },
-  { id: 5, uid: store.user.id, type: 'comment', score: +2, remark: '评论奖励', createTime: '2023-12-02 14:10:00' },
-  { id: 6, uid: store.user.id, type: 'exchange', score: -50, remark: '兑换笔记本', createTime: '2023-12-02 14:20:00' },
-  { id: 7, uid: store.user.id, type: 'sign', score: +5, remark: '每日签到奖励', createTime: '2023-12-03 08:15:00' },
-  { id: 8, uid: store.user.id, type: 'post', score: +10, remark: '发布问题求助', createTime: '2023-12-03 10:20:00' },
-  { id: 9, uid: store.user.id, type: 'exchange', score: -200, remark: '兑换蓝牙耳机', createTime: '2023-12-03 15:45:00' },
-  { id: 10, uid: store.user.id, type: 'sign', score: +5, remark: '每日签到奖励', createTime: '2023-12-04 08:30:00' }
-]
+// 获取用户积分
+const loadUserPoints = () => {
+  getUserPoints((data) => {
+    pointsBalance.value = data || 0
+  }, (message) => {
+    console.error('获取用户积分失败:', message)
+  })
+}
 
 // 获取表格数据
 const getTableData = () => {
-  // 模拟分页和筛选（只显示当前用户的数据）
-  let filteredData = mockData.filter(item => item.uid === store.user.id)
-  
-  // 根据搜索条件过滤
+  // 添加类型过滤条件
+  let type = 0;
+  console.log(searchType);
   if (searchType.value) {
     if (searchType.value === 'earn') {
-      filteredData = filteredData.filter(item => item.score > 0)
+      // 获得积分的类型
+      type = 1 // 假设这些是获得积分的类型
     } else if (searchType.value === 'spend') {
-      filteredData = filteredData.filter(item => item.score < 0)
+      // 消费积分的类型
+      type = 2 // 假设兑换是消费积分的类型
+    } else {
+      // 所有类型
+      type = 0
     }
   }
   
-  if (searchDateRange.value && searchDateRange.value.length === 2) {
-    const [startDate, endDate] = searchDateRange.value
-    filteredData = filteredData.filter(item => {
-      const itemDate = new Date(item.createTime).toISOString().split('T')[0]
-      return itemDate >= startDate && itemDate <= endDate
-    })
-  }
-  
-  // 设置总数
-  pagination.total = filteredData.length
-  
-  // 模拟分页
-  const start = (pagination.pageNum - 1) * pagination.pageSize
-  const end = start + pagination.pageSize
-  tableData.value = filteredData.slice(start, end)
+  getPointsLogList(
+    pagination.pageNum,
+    pagination.pageSize,
+    type,
+    (data) => {
+      tableData.value = data.records || []
+      pagination.total = data.total || 0
+      
+      // 如果有日期范围过滤，在前端进行过滤（假设API不支持日期范围查询）
+      if (searchDateRange.value && searchDateRange.value.length === 2) {
+        const [startDate, endDate] = searchDateRange.value
+        const filteredData = tableData.value.filter(item => {
+          const itemDate = new Date(item.createTime).toISOString().split('T')[0]
+          return itemDate >= startDate && itemDate <= endDate
+        })
+        
+        // 更新总数和当前页数据
+        pagination.total = filteredData.length
+        const start = (pagination.pageNum - 1) * pagination.pageSize
+        const end = start + pagination.pageSize
+        tableData.value = filteredData.slice(start, end)
+      }
+    }, (message) => {
+      console.error('获取积分明细失败:', message)
+      tableData.value = []
+      pagination.total = 0
+    }
+  )
 }
 
 // 搜索处理
@@ -190,8 +203,9 @@ const handleCurrentChange = (val) => {
   getTableData()
 }
 
-// 组件挂载时获取数据
+// 初始化
 onMounted(() => {
+  loadUserPoints()
   getTableData()
 })
 </script>
