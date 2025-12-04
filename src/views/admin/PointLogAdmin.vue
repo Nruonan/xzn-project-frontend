@@ -9,34 +9,40 @@
       </template>
       
       <div class="desc">
-        在这里查看平台的所有积分变动记录
+        在这里管理平台的所有积分日志记录
       </div>
       
-      <!-- 搜索区域 -->
+      <!-- 操作区域 -->
       <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
-        <div></div>
+        <div>
+          <!-- 左侧可以放置操作按钮，如导出等 -->
+        </div>
         <div style="display: flex; gap: 10px">
-          <el-input
-              v-model="searchUid"
-              placeholder="请输入用户ID进行搜索"
-              clearable
-              style="width: 200px"
-              @keyup.enter="handleSearch"
-          />
-          <el-select v-model="searchType" placeholder="请选择类型" clearable style="width: 150px">
-            <el-option label="兑换" value="exchange" />
-            <el-option label="发帖" value="post" />
-            <el-option label="签到" value="sign" />
-          </el-select>
-          <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
+          <el-form :inline="true" :model="{ searchType, searchUsername }">
+            <el-form-item label="用户名">
+              <el-input v-model="searchUsername" placeholder="请输入用户名" clearable />
+            </el-form-item>
+            <el-form-item label="动作类型">
+              <el-select v-model="searchType" placeholder="请选择动作类型" clearable style="width: 150px">
+                <el-option label="发帖" value="post" />
+                <el-option label="评论" value="comment" />
+                <el-option label="点赞" value="like" />
+              </el-select>
+            </el-form-item> 
+          </el-form>
+          <el-button type="primary" @click="handleSearch">
+            <el-icon><Search /></el-icon>
+            搜索
+          </el-button>
           <el-button @click="resetSearch">重置</el-button>
         </div>
       </div>
       
       <!-- 表格区域 -->
-      <el-table :data="tableData" border style="width: 100%">
-        <el-table-column prop="id" label="日志ID" min-width="100" />
-        <el-table-column prop="uid" label="用户ID" min-width="100" />
+      <el-table :data="tableData" border stripe>
+        <el-table-column prop="id" label="日志ID" width="100" />
+        <el-table-column prop="uid" label="用户ID" width="100" />
+        <el-table-column prop="username" label="用户名" width="120" />
         <el-table-column prop="type" label="类型" min-width="100">
           <template #default="scope">
             <el-tag v-if="scope.row.type === 'exchange'" type="danger">兑换</el-tag>
@@ -45,16 +51,16 @@
             <el-tag v-else>{{ scope.row.type }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="score" label="积分变动" min-width="100">
+        <el-table-column prop="score" label="积分变动" min-width="120" align="center">
           <template #default="scope">
             <span :class="scope.row.score > 0 ? 'positive' : 'negative'">
               {{ scope.row.score > 0 ? '+' : '' }}{{ scope.row.score }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="refId" label="关联ID" min-width="100" />
+        <el-table-column prop="refId" label="关联ID" width="120" />
         <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="createTime" label="创建时间" min-width="180">
+        <el-table-column prop="createTime" label="创建时间" width="180">
           <template #default="scope">
             {{ formatDateTime(scope.row.createTime) }}
           </template>
@@ -62,7 +68,7 @@
       </el-table>
 
       <!-- 分页区域 -->
-      <div style="margin-top: 20px; display: flex; justify-content: center">
+      <div class="pagination-area">
         <el-pagination
           v-model:current-page="pagination.pageNum"
           v-model:page-size="pagination.pageSize"
@@ -80,10 +86,12 @@
 <script setup>
 import { Document, Search } from '@element-plus/icons-vue'
 import { reactive, ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { get } from '@/net'
 
 // 搜索条件
-const searchUid = ref('')
 const searchType = ref('')
+const searchUsername = ref('')
 
 // 分页数据
 const pagination = reactive({
@@ -108,41 +116,31 @@ const formatDateTime = (dateTime) => {
   }).replace(/\//g, '-')
 }
 
-// 模拟静态数据
-const mockData = [
-  { id: 1, uid: 1001, type: 'exchange', score: -100, refId: 2001, remark: '兑换保温杯', createTime: '2023-12-01 10:30:00' },
-  { id: 2, uid: 1002, type: 'post', score: +10, refId: 3001, remark: '发布技术文章奖励', createTime: '2023-12-01 11:15:00' },
-  { id: 3, uid: 1003, type: 'sign', score: +5, refId: null, remark: '每日签到奖励', createTime: '2023-12-01 08:45:00' },
-  { id: 4, uid: 1001, type: 'exchange', score: -50, refId: 2002, remark: '兑换笔记本', createTime: '2023-12-02 14:20:00' },
-  { id: 5, uid: 1004, type: 'post', score: +10, refId: 3002, remark: '分享学习心得', createTime: '2023-12-02 16:10:00' },
-  { id: 6, uid: 1005, type: 'sign', score: +5, refId: null, remark: '每日签到奖励', createTime: '2023-12-02 09:30:00' },
-  { id: 7, uid: 1002, type: 'exchange', score: -200, refId: 2003, remark: '兑换蓝牙耳机', createTime: '2023-12-03 15:45:00' },
-  { id: 8, uid: 1006, type: 'post', score: +10, refId: 3003, remark: '发布问题求助', createTime: '2023-12-03 10:20:00' },
-  { id: 9, uid: 1007, type: 'sign', score: +5, refId: null, remark: '每日签到奖励', createTime: '2023-12-03 08:15:00' },
-  { id: 10, uid: 1003, type: 'exchange', score: -80, refId: 2004, remark: '兑换鼠标', createTime: '2023-12-04 13:40:00' }
-]
-
 // 获取表格数据
 const getTableData = () => {
-  // 模拟分页和筛选
-  let filteredData = [...mockData]
-  
-  // 根据搜索条件过滤
-  if (searchUid.value) {
-    filteredData = filteredData.filter(item => item.uid.toString().includes(searchUid.value))
+  const params = {
+    pageNum: pagination.pageNum,
+    pageSize: pagination.pageSize,
+    type: searchType.value || undefined,
+    username: searchUsername.value || undefined
   }
   
-  if (searchType.value) {
-    filteredData = filteredData.filter(item => item.type === searchType.value)
-  }
+  // 构建查询字符串
+  const queryString = Object.keys(params)
+    .filter(key => params[key] !== undefined && params[key] !== '')
+    .map(key => `${key}=${encodeURIComponent(params[key])}`)
+    .join('&')
   
-  // 设置总数
-  pagination.total = filteredData.length
+  const url = queryString ? `/api/admin/point/log/list?${queryString}` : '/api/admin/point/log/list'
   
-  // 模拟分页
-  const start = (pagination.pageNum - 1) * pagination.pageSize
-  const end = start + pagination.pageSize
-  tableData.value = filteredData.slice(start, end)
+  get(url, (data) => {
+    tableData.value = data.records || []
+    pagination.total = data.total || 0
+  }, (message) => {
+    ElMessage.error(message || '获取积分日志列表失败')
+    tableData.value = []
+    pagination.total = 0
+  })
 }
 
 // 搜索处理
@@ -153,8 +151,8 @@ const handleSearch = () => {
 
 // 重置搜索
 const resetSearch = () => {
-  searchUid.value = ''
   searchType.value = ''
+  searchUsername.value = ''
   pagination.pageNum = 1
   getTableData()
 }
@@ -178,22 +176,36 @@ onMounted(() => {
 })
 </script>
 
-<style lang="less" scoped>
+<style scoped>
 .point-log-admin {
-  .desc {
-    color: #bababa;
-    font-size: 13px;
-    margin-bottom: 20px;
-  }
-  
-  .positive {
-    color: #67c23a;
-    font-weight: bold;
-  }
-  
-  .negative {
-    color: #f56c6c;
-    font-weight: bold;
-  }
+  padding: 10px 20px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.desc {
+  margin-bottom: 15px;
+  color: #606266;
+  font-size: 14px;
+}
+
+.pagination-area {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.positive {
+  color: #67c23a;
+  font-weight: bold;
+}
+
+.negative {
+  color: #f56c6c;
+  font-weight: bold;
 }
 </style>

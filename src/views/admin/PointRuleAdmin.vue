@@ -1,37 +1,43 @@
 <template>
-  <div class="point-rule-admin" style="padding: 10px 20px">
+  <div class="point-rule-admin">
     <el-card>
       <template #header>
         <div class="card-header">
-          <el-icon><Operation /></el-icon>
+          <el-icon><Setting /></el-icon>
           积分规则管理
         </div>
       </template>
       
       <div class="desc">
-        在这里管理平台的积分获取和消耗规则
+        在这里管理平台的所有积分规则
       </div>
       
       <!-- 操作区域 -->
       <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
-        <div>
+        <div class="left">
           <el-button type="primary" :icon="Plus" @click="handleAdd">添加规则</el-button>
         </div>
-        <div style="display: flex; gap: 10px">
-          <el-select v-model="searchType" placeholder="请选择动作类型" clearable style="width: 150px">
-            <el-option label="发帖" value="post" />
-            <el-option label="评论" value="comment" />
-            <el-option label="点赞" value="like" />
-          </el-select>
-          <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-          <el-button @click="resetSearch">重置</el-button>
+        <div class="right">
+          <el-form :inline="true">
+            <el-form-item>
+              <el-select v-model="searchType" placeholder="请选择动作类型" clearable style="width: 150px">
+                <el-option label="发帖" value="post" />
+                <el-option label="评论" value="comment" />
+                <el-option label="点赞" value="like" />
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
+              <el-button @click="resetSearch">重置</el-button>
+            </el-form-item>
+          </el-form>
         </div>
       </div>
-      
+
       <!-- 表格区域 -->
       <el-table :data="tableData" border style="width: 100%">
-        <el-table-column prop="id" label="规则ID" min-width="100" />
-        <el-table-column prop="type" label="动作类型" min-width="120">
+        <el-table-column prop="id" label="规则ID" width="140" align="center" />
+        <el-table-column prop="type" label="动作类型" width="140" align="center">
           <template #default="scope">
             <el-tag v-if="scope.row.type === 'post'" type="success">发帖</el-tag>
             <el-tag v-else-if="scope.row.type === 'comment'" type="primary">评论</el-tag>
@@ -39,25 +45,20 @@
             <el-tag v-else>{{ scope.row.type }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="score" label="积分" min-width="100">
+        <el-table-column prop="score" label="积分" min-width="140" align="center">
           <template #default="scope">
             <span :class="scope.row.score > 0 ? 'positive' : 'negative'">
               {{ scope.row.score > 0 ? '+' : '' }}{{ scope.row.score }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="dayLimit" label="每日限制" min-width="120">
+        <el-table-column prop="dayLimit" label="每日限制" min-width="140" align="center">
           <template #default="scope">
             <span v-if="scope.row.dayLimit === 0">无限制</span>
             <span v-else>{{ scope.row.dayLimit }}次/天</span>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" min-width="180">
-          <template #default="scope">
-            {{ formatDateTime(scope.row.createTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" min-width="150" fixed="right">
+        <el-table-column label="操作" width="150" fixed="right" align="center">
           <template #default="scope">
             <el-button-group>
               <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
@@ -68,7 +69,7 @@
       </el-table>
 
       <!-- 分页区域 -->
-      <div style="margin-top: 20px; display: flex; justify-content: center">
+      <div class="pagination-area">
         <el-pagination
           v-model:current-page="pagination.pageNum"
           v-model:page-size="pagination.pageSize"
@@ -134,6 +135,7 @@
 import { Operation, Search, Plus } from '@element-plus/icons-vue'
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { get, post } from '@/net'
 
 // 搜索条件
 const searchType = ref('')
@@ -142,6 +144,7 @@ const searchType = ref('')
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
 const isEdit = ref(false)
+const formRef = ref()
 
 // 表单数据
 const form = reactive({
@@ -181,30 +184,36 @@ const formatDateTime = (dateTime) => {
   }).replace(/\//g, '-')
 }
 
-// 模拟静态数据
-const mockData = [
-  { id: 1, type: 'post', score: 10, dayLimit: 5, createTime: '2023-12-01 10:00:00' },
-  { id: 2, type: 'comment', score: 5, dayLimit: 10, createTime: '2023-12-01 10:00:00' },
-  { id: 3, type: 'like', score: 1, dayLimit: 20, createTime: '2023-12-01 10:00:00' }
-]
-
 // 获取表格数据
 const getTableData = () => {
-  // 模拟分页和筛选
-  let filteredData = [...mockData]
-  
-  // 根据搜索条件过滤
-  if (searchType.value) {
-    filteredData = filteredData.filter(item => item.type === searchType.value)
+  // 构建请求参数
+  const params = {
+    pageNum: pagination.pageNum,
+    pageSize: pagination.pageSize
   }
   
-  // 设置总数
-  pagination.total = filteredData.length
+  // 添加搜索条件
+  if (searchType.value) {
+    params.type = searchType.value
+  }
   
-  // 模拟分页
-  const start = (pagination.pageNum - 1) * pagination.pageSize
-  const end = start + pagination.pageSize
-  tableData.value = filteredData.slice(start, end)
+  // 构建查询字符串
+  const queryString = Object.keys(params)
+    .filter(key => params[key] !== undefined && params[key] !== '')
+    .map(key => `${key}=${encodeURIComponent(params[key])}`)
+    .join('&')
+  
+  const url = queryString ? `/api/admin/point/rule/list?${queryString}` : '/api/admin/point/rule/list'
+  
+  // 发送请求获取积分规则列表
+  get(url, (data) => {
+    tableData.value = data.records || []
+    pagination.total = data.total || 0
+  }, (message) => {
+    ElMessage.error(message || '获取积分规则列表失败')
+    tableData.value = []
+    pagination.total = 0
+  })
 }
 
 // 搜索处理
@@ -251,9 +260,14 @@ const handleAdd = () => {
 const handleEdit = (row) => {
   dialogTitle.value = '编辑积分规则'
   isEdit.value = true
-  // 填充表单数据
-  Object.assign(form, row)
-  dialogVisible.value = true
+  // 获取规则详情
+  get(`/api/admin/point/rule/detail?id=${row.id}`, (data) => {
+    // 填充表单数据
+    Object.assign(form, data)
+    dialogVisible.value = true
+  }, (message) => {
+    ElMessage.error(message || '获取积分规则详情失败')
+  })
 }
 
 // 删除规则
@@ -267,13 +281,13 @@ const handleDelete = (row) => {
       type: 'warning',
     }
   ).then(() => {
-    // 模拟删除操作
-    const index = mockData.findIndex(item => item.id === row.id)
-    if (index > -1) {
-      mockData.splice(index, 1)
-      getTableData()
+    // 发送删除请求
+    get(`/api/admin/point/rule/delete?id=${row.id}`, (data) => {
       ElMessage.success('删除成功!')
-    }
+      getTableData()
+    }, (message) => {
+      ElMessage.error(message || '删除失败')
+    })
   }).catch(() => {
     ElMessage.info('已取消删除')
   })
@@ -281,39 +295,34 @@ const handleDelete = (row) => {
 
 // 提交表单
 const handleSubmit = () => {
-  if (isEdit.value) {
-    // 模拟编辑操作
-    const index = mockData.findIndex(item => item.id === form.id)
-    if (index > -1) {
-      mockData[index] = { ...form }
-      getTableData()
-      ElMessage.success('编辑成功!')
+  formRef.value.validate((valid) => {
+    if (valid) {
+      if (isEdit.value) {
+        // 发送更新请求
+        post('/api/admin/point/rule/update', form, (data) => {
+          ElMessage.success('编辑成功!')
+          dialogVisible.value = false
+          getTableData()
+        }, (message) => {
+          ElMessage.error(message || '编辑失败')
+        })
+      } else {
+        // 发送创建请求
+        post('/api/admin/point/rule/create', form, (data) => {
+          ElMessage.success('添加成功!')
+          dialogVisible.value = false
+          getTableData()
+        }, (message) => {
+          ElMessage.error(message || '添加失败')
+        })
+      }
     }
-  } else {
-    // 模拟添加操作
-    const newRule = {
-      id: mockData.length > 0 ? Math.max(...mockData.map(item => item.id)) + 1 : 1,
-      type: form.type,
-      score: form.score,
-      dayLimit: form.dayLimit,
-      createTime: new Date().toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      }).replace(/\//g, '-')
-    }
-    mockData.push(newRule)
-    getTableData()
-    ElMessage.success('添加成功!')
-  }
-  dialogVisible.value = false
+  })
 }
 
 // 关闭对话框
 const handleDialogClose = () => {
-  // 可以在这里重置表单或其他清理工作
+  formRef.value?.resetFields()
 }
 
 // 组件挂载时获取数据
@@ -324,10 +333,35 @@ onMounted(() => {
 
 <style lang="less" scoped>
 .point-rule-admin {
-  .desc {
-    color: #bababa;
-    font-size: 13px;
-    margin-bottom: 20px;
+  padding: 10px 20px;
+  
+  .card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.desc {
+  margin-bottom: 15px;
+  color: #606266;
+  font-size: 14px;
+}
+  
+  .search-area {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    
+    .right {
+      display: flex;
+      align-items: center;
+    }
+  }
+  
+  .pagination-area {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
   }
   
   .positive {

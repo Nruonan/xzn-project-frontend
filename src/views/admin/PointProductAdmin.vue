@@ -3,13 +3,13 @@
     <el-card>
       <template #header>
         <div class="card-header">
-          <el-icon><Money /></el-icon>
+          <el-icon><ShoppingBag /></el-icon>
           积分商品管理
         </div>
       </template>
       
       <div class="desc">
-        在这里管理平台的积分兑换商品
+        在这里管理平台的所有积分商品
       </div>
       
       <!-- 操作区域 -->
@@ -19,11 +19,11 @@
         </div>
         <div style="display: flex; gap: 10px">
           <el-input
-              v-model="searchName"
-              placeholder="请输入商品名称进行搜索"
-              clearable
-              style="width: 200px"
-              @keyup.enter="handleSearch"
+            v-model="searchName"
+            placeholder="请输入商品名称进行搜索"
+            clearable
+            style="width: 300px"
+            @keyup.enter="handleSearch"
           />
           <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
           <el-button @click="resetSearch">重置</el-button>
@@ -31,47 +31,42 @@
       </div>
       
       <!-- 表格区域 -->
-      <el-table :data="tableData" border style="width: 100%">
-        <el-table-column prop="id" label="商品ID" min-width="80" />
-        <el-table-column prop="name" label="商品名称" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="price" label="兑换积分" min-width="100">
+      <el-table :data="tableData" style="width: 100%">
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="name" label="商品名称" min-width="150" />
+        <el-table-column prop="score" label="所需积分" width="120">
           <template #default="scope">
-            <span class="price">{{ scope.row.price }}</span>
+            <el-tag type="warning">{{ scope.row.score }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="stock" label="当前库存" min-width="100" />
-        <el-table-column prop="totalStock" label="总库存" min-width="100" />
-        <el-table-column prop="sales" label="已兑换数量" min-width="100" />
-        <el-table-column label="商品图片" min-width="120">
+        <el-table-column prop="stock" label="当前库存" width="120" />
+        <el-table-column prop="totalStock" label="总库存" width="120" />
+        <el-table-column prop="image" label="商品图片" width="120">
           <template #default="scope">
             <el-image
-              :src="scope.row.image || 'https://via.placeholder.com/60x60?text=无图片'"
               style="width: 60px; height: 60px"
+              :src="store.productUrl(scope.row.image)"
+              :preview-src-list="[store.productUrl(scope.row.image)]"
               fit="cover"
-              :preview-src-list="[scope.row.image]"
-              v-if="scope.row.image"
             />
-            <span v-else>无图片</span>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" min-width="180">
+        <el-table-column prop="createTime" label="创建时间" width="180">
           <template #default="scope">
             {{ formatDateTime(scope.row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="180" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="scope">
-            <el-button-group>
-              <el-button size="small" @click="handleView(scope.row)">查看</el-button>
-              <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-              <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
-            </el-button-group>
+            <el-button size="small" @click="handleView(scope.row)">查看</el-button>
+            <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button size="small" type="danger" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
-
+      
       <!-- 分页区域 -->
-      <div style="margin-top: 20px; display: flex; justify-content: center">
+      <div class="pagination-area">
         <el-pagination
           v-model:current-page="pagination.pageNum"
           v-model:page-size="pagination.pageSize"
@@ -83,67 +78,12 @@
         />
       </div>
     </el-card>
-
-    <!-- 商品详情对话框 -->
-    <el-dialog
-      v-model="viewDialogVisible"
-      title="商品详情"
-      width="600px"
-    >
-      <el-form label-position="left" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="商品ID">
-              <span>{{ viewData.id }}</span>
-            </el-form-item>
-            <el-form-item label="商品名称">
-              <span>{{ viewData.name }}</span>
-            </el-form-item>
-            <el-form-item label="兑换积分">
-              <span class="price">{{ viewData.price }}</span>
-            </el-form-item>
-            <el-form-item label="当前库存">
-              <span>{{ viewData.stock }}</span>
-            </el-form-item>
-            <el-form-item label="总库存">
-              <span>{{ viewData.totalStock }}</span>
-            </el-form-item>
-            <el-form-item label="已兑换数量">
-              <span>{{ viewData.sales }}</span>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="商品图片">
-              <el-image
-                :src="viewData.image || 'https://via.placeholder.com/150x150?text=无图片'"
-                style="width: 150px; height: 150px"
-                fit="cover"
-                :preview-src-list="[viewData.image]"
-                v-if="viewData.image"
-              />
-              <span v-else>无图片</span>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="商品详情">
-          <div class="product-description" v-html="viewData.description"></div>
-        </el-form-item>
-        <el-form-item label="创建时间">
-          <span>{{ formatDateTime(viewData.createTime) }}</span>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="viewDialogVisible = false">关闭</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
-    <!-- 创建/编辑对话框 -->
+    
+    <!-- 添加/编辑对话框 -->
     <el-dialog
       v-model="dialogVisible"
       :title="dialogTitle"
-      width="700px"
+      width="50%"
       @close="handleDialogClose"
     >
       <el-form
@@ -151,79 +91,65 @@
         :model="form"
         :rules="rules"
         label-width="100px"
+        style="max-width: 500px"
       >
-        <el-row :gutter="20">
-          <el-col :span="16">
-            <el-form-item label="商品名称" prop="name">
-              <el-input v-model="form.name" placeholder="请输入商品名称" />
-            </el-form-item>
-            <el-form-item label="兑换积分" prop="price">
-              <el-input-number 
-                v-model="form.price" 
-                :min="1" 
-                :max="99999" 
-                placeholder="请输入兑换所需积分"
-                style="width: 100%"
-              />
-            </el-form-item>
-            <el-form-item label="总库存" prop="totalStock">
-              <el-input-number 
-                v-model="form.totalStock" 
-                :min="1" 
-                :max="99999" 
-                placeholder="请输入总库存"
-                style="width: 100%"
-              />
-            </el-form-item>
-            <el-form-item label="当前库存" prop="stock">
-              <el-input-number 
-                v-model="form.stock" 
-                :min="0" 
-                :max="form.totalStock" 
-                placeholder="请输入当前库存"
-                style="width: 100%"
-              />
-            </el-form-item>
-            <el-form-item label="商品图片" prop="image">
-              <el-input v-model="form.image" placeholder="请输入图片URL">
-                <template #append>
-                  <el-button @click="handleUploadImage">上传图片</el-button>
-                </template>
-              </el-input>
-              <div v-if="form.image" style="margin-top: 10px">
-                <el-image
-                  :src="form.image"
-                  style="width: 100px; height: 100px"
-                  fit="cover"
-                  :preview-src-list="[form.image]"
-                />
-                <el-button
-                  size="small"
-                  type="danger"
-                  @click="form.image = ''"
-                  style="margin-left: 10px"
-                >
-                  删除
-                </el-button>
-              </div>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <div class="image-preview">
+        <el-form-item label="商品名称" prop="name">
+          <el-input v-model="form.name" placeholder="请输入商品名称" />
+        </el-form-item>
+        <el-form-item label="所需积分" prop="score">
+          <el-input-number v-model="form.score" :min="1" />
+        </el-form-item>
+        <el-form-item label="总库存" prop="totalStock">
+          <el-input-number v-model="form.totalStock" :min="0" />
+        </el-form-item>
+        <el-form-item label="当前库存" prop="stock">
+          <el-input-number v-model="form.stock" :min="0" />
+        </el-form-item>
+        <el-form-item label="商品图片" prop="image">
+          <el-input v-model="form.image" placeholder="请输入图片URL" v-if="!showUpload">
+            <template #append>
+              <el-button @click="showUpload = true">上传图片</el-button>
+            </template>
+          </el-input>
+          <div v-if="showUpload">
+            <el-upload
+              :action="axios.defaults.baseURL + '/api/image/product'"
+              :show-file-list="false"
+              :before-upload="beforeImageUpload"
+              :on-success="uploadImageSuccess"
+              :headers="accessHeader()"
+              :data="{ id: form.id || 'temp' }"
+              accept="image/*"
+            >
+              <el-button type="primary" :disabled="!form.id && dialogTitle.includes('添加')">点击上传</el-button>
+            </el-upload>
+            <div v-if="form.image" style="margin-top: 10px">
               <el-image
-                :src="form.image || 'https://via.placeholder.com/200x200?text=预览图'"
-                style="width: 200px; height: 200px"
+                :src="store.productUrl(form.image)"
+                style="width: 100px; height: 100px"
                 fit="cover"
+                :preview-src-list="[store.productUrl(form.image)]"
               />
+              <el-button
+                size="small"
+                type="danger"
+                @click="form.image = ''"
+                style="margin-left: 10px"
+              >
+                删除
+              </el-button>
             </div>
-          </el-col>
-        </el-row>
-        <el-form-item label="商品详情" prop="description">
+            <div v-else-if="dialogTitle.includes('添加')" style="margin-top: 10px; color: #909399; font-size: 12px;">
+              提示：请先保存商品信息后再上传图片
+            </div>
+          </div>
+        </el-form-item>
+        <el-form-item label="商品描述">
           <el-input
             v-model="form.description"
             type="textarea"
             :rows="4"
-            placeholder="请输入商品详情描述"
+            placeholder="请输入商品描述"
           />
         </el-form-item>
       </el-form>
@@ -234,28 +160,70 @@
         </span>
       </template>
     </el-dialog>
+    
+    <!-- 查看对话框 -->
+    <el-dialog
+      v-model="viewDialogVisible"
+      title="商品详情"
+      width="50%"
+    >
+      <div class="view-content">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="商品ID">{{ viewData.id }}</el-descriptions-item>
+          <el-descriptions-item label="商品名称">{{ viewData.name }}</el-descriptions-item>
+          <el-descriptions-item label="所需积分">{{ viewData.score }}</el-descriptions-item>
+          <el-descriptions-item label="当前库存">{{ viewData.stock }}</el-descriptions-item>
+          <el-descriptions-item label="总库存">{{ viewData.totalStock }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ formatDateTime(viewData.createTime) }}</el-descriptions-item>
+          <el-descriptions-item label="商品图片" :span="2">
+            <el-image
+              v-if="viewData.image"
+              style="width: 100px; height: 100px"
+              :src="store.productUrl(viewData.image)"
+              :preview-src-list="[store.productUrl(viewData.image)]"
+              fit="cover"
+            />
+            <span v-else>暂无图片</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="商品描述" :span="2">{{ viewData.description || '暂无描述' }}</el-descriptions-item>
+        </el-descriptions>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { Money, Search, Plus } from '@element-plus/icons-vue'
+import { Plus, Search, ShoppingBag } from '@element-plus/icons-vue'
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { get, post } from '@/net'
+import { accessHeader } from '@/net/index.js'
+import { useStore } from '@/store/index.js'
+import axios from 'axios'
+
+// 使用store
+const store = useStore()
 
 // 搜索条件
 const searchName = ref('')
 
 // 对话框相关
 const dialogVisible = ref(false)
-const dialogTitle = ref('')
-const isEdit = ref(false)
 const viewDialogVisible = ref(false)
+const dialogTitle = ref('')
+const formRef = ref(null)
+
+// 图片上传控制
+const showUpload = ref(false)
+
+// 表格数据
+const tableData = ref([])
 
 // 表单数据
 const form = reactive({
-  id: 0,
+  id: '',
   name: '',
-  price: 0,
+  score: 0,
   stock: 0,
   totalStock: 0,
   image: '',
@@ -263,25 +231,7 @@ const form = reactive({
 })
 
 // 查看数据
-const viewData = reactive({
-  id: 0,
-  name: '',
-  price: 0,
-  stock: 0,
-  totalStock: 0,
-  sales: 0,
-  image: '',
-  description: '',
-  createTime: ''
-})
-
-// 表单验证规则
-const rules = {
-  name: [{ required: true, message: '请输入商品名称', trigger: 'blur' }],
-  price: [{ required: true, message: '请输入兑换所需积分', trigger: 'blur' }],
-  totalStock: [{ required: true, message: '请输入总库存', trigger: 'blur' }],
-  stock: [{ required: true, message: '请输入当前库存', trigger: 'blur' }]
-}
+const viewData = ref({})
 
 // 分页数据
 const pagination = reactive({
@@ -290,8 +240,13 @@ const pagination = reactive({
   total: 0
 })
 
-// 表格数据
-const tableData = ref([])
+// 表单验证规则
+const rules = {
+  name: [{ required: true, message: '请输入商品名称', trigger: 'blur' }],
+  score: [{ required: true, message: '请输入所需积分', trigger: 'blur' }],
+  totalStock: [{ required: true, message: '请输入总库存', trigger: 'blur' }],
+  stock: [{ required: true, message: '请输入当前库存', trigger: 'blur' }]
+}
 
 // 格式化日期时间
 const formatDateTime = (dateTime) => {
@@ -306,75 +261,34 @@ const formatDateTime = (dateTime) => {
   }).replace(/\//g, '-')
 }
 
-// 模拟静态数据
-const mockData = [
-  { 
-    id: 1, 
-    name: '保温杯', 
-    price: 100, 
-    stock: 50, 
-    totalStock: 100, 
-    image: 'https://via.placeholder.com/100x100?text=保温杯', 
-    description: '高品质不锈钢保温杯，保温效果长达12小时',
-    createTime: '2023-12-01 10:00:00' 
-  },
-  { 
-    id: 2, 
-    name: '无线鼠标', 
-    price: 200, 
-    stock: 30, 
-    totalStock: 50, 
-    image: 'https://via.placeholder.com/100x100?text=鼠标', 
-    description: '人体工学设计，静音按键，适合长时间办公使用',
-    createTime: '2023-12-01 10:00:00' 
-  },
-  { 
-    id: 3, 
-    name: '蓝牙耳机', 
-    price: 300, 
-    stock: 20, 
-    totalStock: 30, 
-    image: 'https://via.placeholder.com/100x100?text=耳机', 
-    description: '真无线蓝牙耳机，降噪功能，续航时间长',
-    createTime: '2023-12-01 10:00:00' 
-  },
-  { 
-    id: 4, 
-    name: '笔记本', 
-    price: 50, 
-    stock: 100, 
-    totalStock: 200, 
-    image: 'https://via.placeholder.com/100x100?text=笔记本', 
-    description: '精美笔记本，纸质优良，适合记录重要事项',
-    createTime: '2023-12-01 10:00:00' 
-  }
-]
-
-// 计算已兑换数量
-const calculateSales = (item) => {
-  return item.totalStock - item.stock
-}
-
 // 获取表格数据
 const getTableData = () => {
-  // 模拟分页和筛选
-  let filteredData = [...mockData]
-  
-  // 根据搜索条件过滤
-  if (searchName.value) {
-    filteredData = filteredData.filter(item => item.name.includes(searchName.value))
+  const params = {
+    pageNum: pagination.pageNum,
+    pageSize: pagination.pageSize
   }
   
-  // 设置总数
-  pagination.total = filteredData.length
+  // 添加搜索条件
+  if (searchName.value) {
+    params.name = searchName.value
+  }
   
-  // 模拟分页并计算已兑换数量
-  const start = (pagination.pageNum - 1) * pagination.pageSize
-  const end = start + pagination.pageSize
-  tableData.value = filteredData.slice(start, end).map(item => ({
-    ...item,
-    sales: calculateSales(item)
-  }))
+  // 构建查询字符串
+  const queryString = Object.keys(params)
+    .filter(key => params[key] !== undefined && params[key] !== '')
+    .map(key => `${key}=${encodeURIComponent(params[key])}`)
+    .join('&')
+  
+  const url = queryString ? `/api/admin/point/product/list?${queryString}` : '/api/admin/point/product/list'
+  
+  get(url, (data) => {
+    tableData.value = data.records || []
+    pagination.total = data.total || 0
+  }, (message) => {
+    ElMessage.error(message || '获取积分商品列表失败')
+    tableData.value = []
+    pagination.total = 0
+  })
 }
 
 // 搜索处理
@@ -403,109 +317,121 @@ const handleCurrentChange = (val) => {
   getTableData()
 }
 
-// 查看商品详情
-const handleView = (row) => {
-  Object.assign(viewData, {
-    ...row,
-    sales: calculateSales(row)
-  })
-  viewDialogVisible.value = true
-}
-
 // 添加商品
 const handleAdd = () => {
-  dialogTitle.value = '添加积分商品'
-  isEdit.value = false
+  dialogTitle.value = '添加商品'
+  dialogVisible.value = true
+  showUpload.value = false
   // 重置表单
   Object.assign(form, {
-    id: 0,
+    id: '',
     name: '',
-    price: 0,
+    score: 0,
     stock: 0,
     totalStock: 0,
     image: '',
     description: ''
   })
-  dialogVisible.value = true
 }
 
 // 编辑商品
 const handleEdit = (row) => {
-  dialogTitle.value = '编辑积分商品'
-  isEdit.value = true
-  // 填充表单数据
-  Object.assign(form, row)
+  dialogTitle.value = '编辑商品'
   dialogVisible.value = true
+  showUpload.value = false
+  // 填充表单
+  Object.assign(form, row)
+}
+
+// 查看商品
+const handleView = (row) => {
+  viewDialogVisible.value = true
+  viewData.value = row
 }
 
 // 删除商品
 const handleDelete = (row) => {
   ElMessageBox.confirm(
-    '此操作将永久删除该积分商品, 是否继续?',
-    '提示',
+    `确定要删除商品"${row.name}"吗？`,
+    '删除确认',
     {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning',
+      type: 'warning'
     }
   ).then(() => {
-    // 模拟删除操作
-    const index = mockData.findIndex(item => item.id === row.id)
-    if (index > -1) {
-      mockData.splice(index, 1)
+    get('/api/admin/point/product/delete?id=' + row.id,  () => {
+      ElMessage.success('删除成功')
       getTableData()
-      ElMessage.success('删除成功!')
-    }
+    }, (message) => {
+      ElMessage.error(message || '删除失败')
+    })
   }).catch(() => {
-    ElMessage.info('已取消删除')
+    // 用户取消删除
   })
 }
 
-// 上传图片处理
-const handleUploadImage = () => {
-  // 模拟上传图片，这里直接设置一个示例图片URL
-  form.image = 'https://via.placeholder.com/200x200?text=上传图片'
-  ElMessage.info('模拟上传成功')
+// 图片上传前验证
+const beforeImageUpload = (file) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt1M = file.size / 1024 < 1000 // 1000KB
+
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件!')
+    return false
+  }
+  if (!isLt1M) {
+    ElMessage.error('图片大小不能超过 1000KB!')
+    return false
+  }
+  return true
+}
+
+// 图片上传成功
+const uploadImageSuccess = (response) => {
+  // 检查响应状态码
+  if (response.code === 200 && response.data) {
+    ElMessage.success('图片上传成功')
+    form.image = response.data
+  } else {
+    ElMessage.error(response.message || '图片上传失败')
+  }
 }
 
 // 提交表单
 const handleSubmit = () => {
-  if (isEdit.value) {
-    // 模拟编辑操作
-    const index = mockData.findIndex(item => item.id === form.id)
-    if (index > -1) {
-      mockData[index] = { ...form }
-      getTableData()
-      ElMessage.success('编辑成功!')
+  formRef.value.validate((valid) => {
+    if (valid) {
+      const isEdit = !!form.id
+      const url = isEdit ? '/api/admin/point/product/update' : '/api/admin/point/product/create'
+      
+      post(url, form, (data) => {
+        ElMessage.success(isEdit ? '更新成功' : '添加成功')
+        
+        // 如果是新建商品，更新form.id以便后续上传图片
+        if (!isEdit && data && data.id) {
+          form.id = data.id
+          // 如果有图片需要上传，提示用户重新上传
+          if (form.image && form.image.startsWith('blob:')) {
+            ElMessage.info('请重新上传商品图片')
+          } else {
+            dialogVisible.value = false
+            getTableData()
+          }
+        } else {
+          dialogVisible.value = false
+          getTableData()
+        }
+      }, (message) => {
+        ElMessage.error(message || (isEdit ? '更新失败' : '添加失败'))
+      })
     }
-  } else {
-    // 模拟添加操作
-    const newProduct = {
-      id: mockData.length > 0 ? Math.max(...mockData.map(item => item.id)) + 1 : 1,
-      name: form.name,
-      price: form.price,
-      stock: form.stock,
-      totalStock: form.totalStock,
-      image: form.image,
-      description: form.description,
-      createTime: new Date().toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      }).replace(/\//g, '-')
-    }
-    mockData.push(newProduct)
-    getTableData()
-    ElMessage.success('添加成功!')
-  }
-  dialogVisible.value = false
+  })
 }
 
-// 关闭对话框
+// 对话框关闭处理
 const handleDialogClose = () => {
-  // 可以在这里重置表单或其他清理工作
+  formRef.value?.resetFields()
 }
 
 // 组件挂载时获取数据
@@ -514,32 +440,30 @@ onMounted(() => {
 })
 </script>
 
-<style lang="less" scoped>
+<style scoped>
 .point-product-admin {
-  .desc {
-    color: #bababa;
-    font-size: 13px;
-    margin-bottom: 20px;
-  }
-  
-  .price {
-    color: #f56c6c;
-    font-weight: bold;
-    font-size: 16px;
-  }
-  
-  .product-description {
-    min-height: 60px;
-    padding: 10px;
-    background-color: #f5f7fa;
-    border-radius: 4px;
-  }
-  
-  .image-preview {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-  }
+  padding: 10px 20px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.desc {
+  margin-bottom: 15px;
+  color: #606266;
+  font-size: 14px;
+}
+
+.pagination-area {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.view-content {
+  padding: 10px 0;
 }
 </style>
