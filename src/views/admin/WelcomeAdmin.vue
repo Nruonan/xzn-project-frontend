@@ -58,7 +58,8 @@ const quickActions = [
   { title: '用户管理', path: '/admin/user', icon: 'User', type: 'primary' },
   { title: '帖子管理', path: '/admin/forum', icon: 'ChatDotSquare', type: 'success' },
   { title: '神券管理', path: '/admin/ticket', icon: 'Money', type: 'warning' },
-  { title: '公告管理', path: '/admin/notice', icon: 'Document', type: 'danger' }
+  { title: '公告管理', path: '/admin/notice', icon: 'Document', type: 'danger' },
+  { title: '积分订单', path: '/admin/point-order', icon: 'Document', type: 'info' }
 ]
 
 // 处理快捷操作点击

@@ -31,6 +31,14 @@ const adminMenu = [
       {title: '公告管理', icon: Document, index: '/admin/notice'},
       {title: '活动管理', icon: ToiletPaper, index: '/admin/activity'},
     ]
+  },
+  {
+    title: '积分商城管理', icon: Money, sub:[
+      {title: '积分日志管理', icon: Document, index: '/admin/point-log'},
+      {title: '积分规则管理', icon: Operation, index: '/admin/point-rule'},
+      {title: '积分商品管理', icon: Money, index: '/admin/point-product'},
+      {title: '积分订单管理', icon: Files, index: '/admin/point-order'},
+    ]
   }
 ]
 const pageTabs = ref([])

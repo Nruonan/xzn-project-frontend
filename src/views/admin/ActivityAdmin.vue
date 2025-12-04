@@ -544,16 +544,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #409EFF;
-  font-weight: bold;
-  font-size: 1.2rem;
 }
 
 .desc {
-  color: #909399;
-  font-size: 0.9rem;
-  margin-bottom: 15px;
-  padding-left: 5px;
+  color: #bababa;
+  font-size: 13px;
+  margin-bottom: 20px;
 }
 
 .search-box {

@@ -165,6 +165,12 @@ let userMenu = [
       { title: '校园活动', icon: Notification, index: '/index/activity'},
     ]
   }, {
+    title: '积分商城', icon: Money, sub: [
+      { title: '积分兑换', icon: Goods, index: '/index/points-exchange' },
+      { title: '积分明细', icon: Document, index: '/index/points-detail' },
+      { title: '积分订单', icon: Files, index: '/index/points-order' }
+    ]
+  }, {
     title: '个人设置', icon: Operation, sub: [
       { title: '用户主页面', icon: House, index: `/index/user-detail/${store.user.id}` },
       { title: '个人信息设置', icon: User, index: '/index/user-setting' },

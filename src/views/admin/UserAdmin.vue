@@ -68,7 +68,8 @@ onMounted(() => {
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>社区用户列表</span>
+          <el-icon><User /></el-icon>
+          社区用户列表
         </div>
       </template>
      <div class="desc">

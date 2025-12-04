@@ -77,6 +77,10 @@
                     {{ desc || '这个用户很懒，没有填写个人简介' }}
                 </div>
             </Card>
+            
+            <!-- 积分展示组件 -->
+            <UserPoints style="margin-top: 10px;" />
+            
             <card style="margin-top: 10px;font-size: 14px">
                     <div>账号注册时间: {{ new Date(store.user.registerTime).toLocaleString() }}</div>
                     <div style="color: grey">欢迎加入我们的学习论坛！</div>
@@ -89,7 +93,8 @@
 
 <script setup >
 import Card from "../../components/Card.vue";
-import {Message, Refresh, Select, User} from "@element-plus/icons-vue";
+import UserPoints from "../../components/UserPoints.vue";
+import {Message, Refresh, Select, User, Money} from "@element-plus/icons-vue";
 import {useStore} from "@/store/index.js";
 import {onMounted, reactive, ref} from "vue";
 import {accessHeader} from "@/net/index.js";

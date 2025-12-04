@@ -1,5 +1,5 @@
 <script setup>
-import { Document, Delete, EditPen, View, Search, Plus } from '@element-plus/icons-vue'
+import { Document, Delete, EditPen, View, Search, Plus, Collection } from '@element-plus/icons-vue'
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
@@ -186,14 +186,18 @@ onMounted(() => {
 </script>
 
 <template>
-  <div style="padding: 10px 20px">
+  <div class="type-admin" style="padding: 10px 20px">
     <el-card>
       <template #header>
         <div class="card-header">
-          <span>帖子类型管理</span>
+          <el-icon><Collection /></el-icon>
+          帖子类型管理
         </div>
       </template>
-
+ 
+      <div class="desc">
+        在这里管理社区的所有帖子类型
+      </div>
       <!-- 搜索区域 -->
       <div style="display: flex; justify-content: space-between; margin-bottom: 15px">
         <div>
@@ -268,8 +272,21 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.card-header {
-  font-size: 18px;
-  font-weight: bold;
+.type-admin {
+  .title {
+    font-weight: bold;
+  }
+
+  .desc {
+    color: #bababa;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+  }
 }
 </style>

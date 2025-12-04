@@ -141,6 +141,21 @@ const router = createRouter({
           name: 'privacy-setting',
           component: () => import('../views/settings/PrivacySetting.vue')
         },
+        {
+          path: 'points-detail',
+          name: 'points-detail',
+          component: () => import('../views/settings/PointsDetail.vue')
+        },
+        {
+          path: 'points-exchange',
+          name: 'points-exchange',
+          component: () => import('../views/points/PointsExchange.vue')
+        },
+        {
+          path: 'points-order',
+          name: 'points-order',
+          component: () => import('../views/points/PointsOrder.vue')
+        },
       ]
     },{
       path: '/admin',
@@ -184,7 +199,22 @@ const router = createRouter({
           path: 'activity',
           name: 'admin-activity',
           component: () => import('../views/admin/ActivityAdmin.vue')
-
+        },{
+          path: 'point-log',
+          name: 'admin-point-log',
+          component: () => import('../views/admin/PointLogAdmin.vue')
+        },{
+          path: 'point-rule',
+          name: 'admin-point-rule',
+          component: () => import('../views/admin/PointRuleAdmin.vue')
+        },{
+          path: 'point-product',
+          name: 'admin-point-product',
+          component: () => import('../views/admin/PointProductAdmin.vue')
+        },{
+          path: 'point-order',
+          name: 'admin-point-order',
+          component: () => import('../views/admin/PointOrderAdmin.vue')
         }
       ]
     },
