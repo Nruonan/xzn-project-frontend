@@ -1,6 +1,7 @@
 <template>
-  <div class="points-detail" style="max-width: 950px; margin: 20px auto; padding: 0 20px;">
-    <el-card>
+  <div class="points-detail" style="max-width: 1300px; margin: 20px auto; padding: 0 20px; display: flex; gap: 20px;">
+    <!-- 积分明细卡片 -->
+    <el-card style="flex: 2;">
       <template #header>
         <div class="card-header">
           <el-icon><Money /></el-icon>
@@ -78,19 +79,74 @@
         />
       </div>
     </el-card>
+    
+    <!-- 每日积分获取清单卡片 -->
+    <el-card style="flex: 1;">
+      <template #header>
+        <div class="card-header">
+          <el-icon><Trophy /></el-icon>
+          每日积分获取清单
+        </div>
+      </template>
+      
+      <div v-loading="loadingPointRules" class="point-rules-container">
+        <div v-if="pointRulesData" class="rules-summary">
+          <div class="summary-item">
+            <div class="summary-label">今日已获得</div>
+            <div class="summary-value positive">{{ pointRulesData.todayEarnedPoints || 0 }}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">本月已获得</div>
+            <div class="summary-value">{{ pointRulesData.monthEarnedPoints || 0 }}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">累计消费</div>
+            <div class="summary-value negative">{{ pointRulesData.totalConsumedPoints || 0 }}</div>
+          </div>
+        </div>
+        
+        <div class="rules-list" v-if="pointRulesData && pointRulesData.pointRules && pointRulesData.pointRules.length > 0">
+          <div v-for="rule in pointRulesData.pointRules" :key="rule.id" class="rule-item">
+            <div class="rule-info">
+              <div class="rule-type">{{ rule.typeDesc }}</div>
+              <div class="rule-score">+{{ rule.score }} 积分</div>
+            </div>
+            <div class="rule-progress">
+              <div class="progress-text">
+                今日完成: {{ rule.todayCompletedCount }}{{ rule.dayLimit > 0 ? '/' + rule.dayLimit : '' }}
+              </div>
+              <el-progress 
+                :percentage="rule.dayLimit > 0 ? Math.min(100, (rule.todayCompletedCount / rule.dayLimit) * 100) : 0"
+                :status="rule.canEarnPoints ? '' : 'success'"
+                :show-text="false"
+              />
+              <div class="status-text" :class="{ 'completed': !rule.canEarnPoints }">
+                {{ rule.canEarnPoints ? '可继续获得' : '已完成' }}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <el-empty v-else description="暂无积分规则" />
+      </div>
+    </el-card>
   </div>
 </template>
 
 <script setup>
-import { Money, Search } from '@element-plus/icons-vue'
+import { Money, Search, Trophy } from '@element-plus/icons-vue'
 import { reactive, ref, onMounted } from 'vue'
 import { useStore } from '@/store/index.js'
-import { getUserPoints, getPointsLogList } from '@/net/api/point.js'
+import { getUserPoints, getPointsLogList, getUserPointRuleStatus } from '@/net/api/point.js'
 
 const store = useStore()
 
 // 积分余额
 const pointsBalance = ref(0)
+
+// 积分规则相关数据
+const loadingPointRules = ref(false)
+const pointRulesData = ref(null)
 
 // 搜索条件
 const searchType = ref('')
@@ -126,6 +182,21 @@ const loadUserPoints = () => {
   }, (message) => {
     console.error('获取用户积分失败:', message)
   })
+}
+
+// 获取用户积分规则状态
+const loadUserPointRuleStatus = () => {
+  loadingPointRules.value = true
+  getUserPointRuleStatus(
+    (data) => {
+      pointRulesData.value = data
+      loadingPointRules.value = false
+    }, 
+    (message) => {
+      console.error('获取用户积分规则状态失败:', message)
+      loadingPointRules.value = false
+    }
+  )
 }
 
 // 获取表格数据
@@ -206,6 +277,7 @@ const handleCurrentChange = (val) => {
 // 初始化
 onMounted(() => {
   loadUserPoints()
+  loadUserPointRuleStatus()
   getTableData()
 })
 </script>
@@ -252,6 +324,90 @@ onMounted(() => {
   .negative {
     color: #f56c6c;
     font-weight: bold;
+  }
+  
+  .point-rules-container {
+    .rules-summary {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      
+      .summary-item {
+        text-align: center;
+        flex: 1;
+        
+        .summary-label {
+          font-size: 14px;
+          color: #606266;
+          margin-bottom: 5px;
+        }
+        
+        .summary-value {
+          font-size: 24px;
+          font-weight: bold;
+          
+          &.positive {
+            color: #67c23a;
+          }
+          
+          &.negative {
+            color: #f56c6c;
+          }
+        }
+      }
+    }
+    
+    .rules-list {
+      .rule-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        transition: all 0.3s;
+        
+        &:hover {
+          background-color: #f0f9ff;
+          box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .rule-info {
+          .rule-type {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+          }
+          
+          .rule-score {
+            color: #409eff;
+            font-weight: bold;
+          }
+        }
+        
+        .rule-progress {
+          width: 50%;
+          
+          .progress-text {
+            font-size: 14px;
+            color: #606266;
+            margin-bottom: 8px;
+          }
+          
+          .status-text {
+            font-size: 14px;
+            margin-top: 8px;
+            text-align: right;
+            
+            &.completed {
+              color: #67c23a;
+              font-weight: bold;
+            }
+          }
+        }
+      }
+    }
   }
 }
 </style>

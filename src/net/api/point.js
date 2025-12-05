@@ -114,6 +114,15 @@ export const cancelPointsOrder = (id, success) => {
 };
 
 /**
+ * 获取用户积分规则状态
+ * @param success 成功回调函数
+ * @param error 失败回调函数
+ */
+export const getUserPointRuleStatus = (success, error) => {
+  return get('/api/point/rule/have-point', success, error);
+};
+
+/**
  * 积分相关API接口 - 管理员访问
  */
 
