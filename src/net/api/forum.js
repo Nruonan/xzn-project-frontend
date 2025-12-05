@@ -115,3 +115,6 @@ export const apiAdminTopicTypeRemove = (id, success) =>
 
 export const apiAdminTopicTypeDetail = (id, success) =>
     get(`/api/admin/topic-type/detail?id=${id}`, success)
+
+export const apiSearchTopics = (keyword, page, size, success) =>
+    post('/api/forum/search-topics', { keyword, page, size }, success)

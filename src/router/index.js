@@ -187,6 +187,13 @@ const router = createRouter({
           component: () => import('../views/admin/PointOrderAdmin.vue')
         }
       ]
+    },{
+      path: '/search',
+      name: 'search',
+      component: () => import('../views/forum/SearchView.vue'),
+      meta: {
+        standalone: true
+      }
     },
   ]
 })

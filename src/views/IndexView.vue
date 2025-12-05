@@ -121,6 +121,8 @@ import { useDark } from '@vueuse/core'
 import {get} from "../net/index.js";
 import {useStore} from "../store/index.js";
 import {ref, reactive, inject} from "vue";
+import {useRouter} from "vue-router";
+import {ElMessage} from "element-plus";
 import LightCard from "../components/LightCard.vue";
 import UserInfo from "@/components/UserInfo.vue";
 import {
@@ -133,6 +135,7 @@ const search = reactive({
   type: '1'
 })
 const store = useStore()
+const router = useRouter()
 const isDark = useDark()
 const notification = ref([])
 let userMenu = [
@@ -179,8 +182,15 @@ function deleteAllNotification(){
 }
 
 function handleSearch() {
-  // 这里可以添加搜索逻辑，比如跳转到搜索页面或打开搜索对话框
-  console.log('搜索功能被点击')
+  if (search.text.trim()) {
+    router.push({
+      path: '/search',
+      query: { keyword: search.text }
+    })
+    search.text = ''
+  } else {
+    ElMessage.warning('请输入搜索关键词')
+  }
 }
 </script>
 
