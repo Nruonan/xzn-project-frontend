@@ -73,11 +73,17 @@ function convertToHtml(content){
 
 function interact(type){
   apiForumInteract(tid,type,topic, data => {
-     if (data.length > 4) {
+     if (data !== null && data.length > 4) {
        ElMessage.error(data)
      } else {
+       // 操作成功，更新本地状态
        ElMessage.success(data)
      }
+      if(type === 'like') {
+         topic.like = !topic.like
+       } else if(type === 'collect') {
+         topic.collect = !topic.collect
+       }
   })
 }
 

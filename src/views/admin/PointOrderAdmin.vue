@@ -293,13 +293,9 @@ const updateOrderStatus = (row, status) => {
       type: 'warning'
     }
   ).then(() => {
-    // 创建请求数据对象
-    const requestData = {
-      id: row.id,
-      status: status
-    }
+  
     
-    updatePointsOrderStatusAdmin(requestData, (response) => {
+    updatePointsOrderStatusAdmin(row.id, status, (response) => {
       // 检查响应数据
       if (response === true) {
         ElMessage.success(`${statusText}成功`)

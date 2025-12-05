@@ -55,14 +55,14 @@
             <el-tag v-else>{{ scope.row.type }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="score" label="积分变动" min-width="120" align="center">
+        <el-table-column prop="score" label="积分变动" width="120" align="center">
           <template #default="scope">
             <span :class="scope.row.score > 0 ? 'positive' : 'negative'">
               {{ scope.row.score > 0 ? '+' : '' }}{{ scope.row.score }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="refId" label="关联ID" width="120" />
+        <el-table-column prop="refId" label="关联帖子ID/订单ID" min-width="150" />
         <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip />
         <el-table-column prop="createTime" label="创建时间" width="180">
           <template #default="scope">

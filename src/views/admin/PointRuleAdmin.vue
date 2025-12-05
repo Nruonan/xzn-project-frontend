@@ -97,8 +97,8 @@
         :rules="rules"
         label-width="100px"
       >
-        <el-form-item label="动作类型" prop="type">
-          <el-select v-model="form.type" placeholder="请选择动作类型" style="width: 100%">
+        <el-form-item label="动作类型" prop="type" :disabled="isEdit">
+          <el-select v-model="form.type" placeholder="请选择动作类型" style="width: 100%" :disabled="isEdit">
             <el-option label="发帖" value="post" />
             <el-option label="评论" value="comment" />
             <el-option label="点赞" value="like" />

@@ -233,8 +233,8 @@ export const getPointsOrderListAdmin = (pageNum = 1, pageSize = 10, status, name
  * 更新积分订单状态（管理员）
  * @param data 订单状态更新请求数据
  */
-export const updatePointsOrderStatus = (data, success) => {
-  return post('/api/admin/point/order/update-status', data, success);
+export const updatePointsOrderStatus = (id, status, success) => {
+  return get(`/api/admin/point/order/update-status?id=${id}&status=${status}`, success);
 };
 
 /**

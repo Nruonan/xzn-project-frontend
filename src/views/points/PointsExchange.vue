@@ -46,49 +46,73 @@
     </div>
     
     <div class="pagination-section">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :total="totalProducts"
-        layout="prev, pager, next, jumper"
-        @current-change="handlePageChange"
-      />
+      <!-- 分页 -->
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="totalProducts"
+          layout="prev, pager, next, jumper"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </div>
     
-    <!-- 兑换确认对话框 -->
-    <el-dialog v-model="dialogVisible" title="确认兑换" width="500px">
-      <div v-if="selectedProduct" class="confirm-dialog">
-        <div class="product-preview">
-          <img :src="selectedProduct.image" :alt="selectedProduct.name" />
-          <div>
-            <h3>{{ selectedProduct.name }}</h3>
-            <p>兑换积分: {{ selectedProduct.score }}</p>
-            <p>兑换后剩余积分: {{ userPoints - selectedProduct.score }}</p>
+    <!-- 兑换对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      title="商品兑换"
+      width="500px"
+      class="exchange-dialog"
+    >
+      <div class="exchange-form" v-if="selectedProduct">
+        <div class="product-info">
+          <div> <h3>产品名称：{{ selectedProduct.name }}</h3></div>
+          <img :src="selectedProduct.image" :alt="selectedProduct.name" class="product-image" />
+          <div class="product-details">
+            产品简述：{{ selectedProduct.description }}
+            <p class="product-price">积分: {{ selectedProduct.score }}</p>
           </div>
         </div>
+        
         <el-form :model="exchangeForm" label-width="80px">
-          <el-form-item label="兑换数量">
-            <el-input-number 
-              v-model="exchangeForm.quantity" 
-              :min="1" 
-              :max="Math.min(selectedProduct.stock, Math.floor(userPoints / selectedProduct.score))"
+          <el-form-item label="数量">
+            <el-input-number
+              v-model="exchangeForm.quantity"
+              :min="1"
+              :max="Math.floor(userPoints / selectedProduct.score)"
+              controls-position="right"
               @change="handleQuantityChange"
             />
           </el-form-item>
-          <el-form-item label="总计积分">
-            <strong>{{ exchangeForm.quantity * selectedProduct.score }} 积分</strong>
-          </el-form-item>
-          <el-form-item label="收货人" prop="username" :rules="[{ required: true, message: '请输入收货人姓名', trigger: 'blur' }]">
+          
+          <el-form-item label="收货人">
             <el-input v-model="exchangeForm.username" placeholder="请输入收货人姓名" />
           </el-form-item>
-          <el-form-item label="联系电话" prop="phone" :rules="[{ required: true, message: '请输入联系电话', trigger: 'blur' }]">
-            <el-input v-model="exchangeForm.phone" placeholder="请输入联系电话" />
+          
+          <el-form-item label="联系电话">
+            <el-input 
+              v-model="exchangeForm.phone" 
+              placeholder="请输入11位手机号码"
+              maxlength="11"
+            />
           </el-form-item>
-          <el-form-item label="收货地址" prop="address" :rules="[{ required: true, message: '请输入收货地址', trigger: 'blur' }]">
-            <el-input v-model="exchangeForm.address" placeholder="请输入收货地址" type="textarea" />
+          
+          <el-form-item label="收货地址">
+            <el-input
+              v-model="exchangeForm.address"
+              type="textarea"
+              :rows="2"
+              placeholder="请输入详细收货地址"
+            />
+          </el-form-item>
+          
+          <el-form-item label="总积分">
+            <span class="total-points">{{ selectedProduct.score * exchangeForm.quantity }}</span>
           </el-form-item>
         </el-form>
       </div>
+      
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
@@ -109,7 +133,7 @@ import { getUserPoints, getPointsProductList, createPointsOrder } from '@/net/ap
 const store = useStore()
 
 // 积分余额
-const pointsBalance = ref(0)
+const userPoints = ref(0)
 
 // 搜索条件
 const searchText = ref('')
@@ -120,6 +144,11 @@ const pagination = reactive({
   pageSize: 12,
   total: 0
 })
+
+// 为了兼容模板中的变量名
+const currentPage = ref(1)
+const pageSize = ref(12)
+const totalProducts = ref(0)
 
 // 商品列表
 const productList = ref([])
@@ -134,13 +163,13 @@ const exchangeForm = reactive({
 })
 
 // 兑换对话框
-const exchangeDialogVisible = ref(false)
-const currentProduct = ref(null)
+const dialogVisible = ref(false)
+const selectedProduct = ref(null)
 
 // 获取用户积分
 const loadUserPoints = () => {
   getUserPoints((data) => {
-    pointsBalance.value = data || 0
+    userPoints.value = data || 0
   }, (message) => {
     console.error('获取用户积分失败:', message)
   })
@@ -155,6 +184,11 @@ const loadProducts = () => {
     (data) => {
       productList.value = data.records || []
       pagination.total = data.total || 0
+      
+      // 同步更新分页变量
+      currentPage.value = pagination.pageNum
+      pageSize.value = pagination.pageSize
+      totalProducts.value = pagination.total
       
       // 处理图片URL
       productList.value.forEach(product => {
@@ -197,24 +231,40 @@ const handleCurrentChange = (val) => {
 
 // 打开兑换对话框
 const openExchangeDialog = (product) => {
-  currentProduct.value = product
+  selectedProduct.value = product
   exchangeForm.productId = product.id
   exchangeForm.quantity = 1
   exchangeForm.username = ''
   exchangeForm.phone = ''
   exchangeForm.address = ''
-  exchangeDialogVisible.value = true
+  dialogVisible.value = true
 }
 
 // 关闭兑换对话框
 const closeExchangeDialog = () => {
-  exchangeDialogVisible.value = false
-  currentProduct.value = null
+  dialogVisible.value = false
+  selectedProduct.value = null
   exchangeForm.productId = null
   exchangeForm.quantity = 1
   exchangeForm.username = ''
   exchangeForm.phone = ''
   exchangeForm.address = ''
+}
+
+// 兑换商品
+const exchangeProduct = (product) => {
+  selectedProduct.value = product
+  exchangeForm.productId = product.id
+  exchangeForm.quantity = 1
+  exchangeForm.username = ''
+  exchangeForm.phone = ''
+  exchangeForm.address = ''
+  dialogVisible.value = true
+}
+
+// 处理数量变化
+const handleQuantityChange = () => {
+  // 数量变化时的处理逻辑，如果需要的话
 }
 
 // 确认兑换
@@ -230,41 +280,49 @@ const confirmExchange = () => {
     return
   }
   
+  // 手机号正则校验
+  const phoneRegex = /^1[3-9]\d{9}$/
+  if (!phoneRegex.test(exchangeForm.phone)) {
+    ElMessage.warning('请输入正确的手机号码格式')
+    return
+  }
+  
   if (!exchangeForm.address.trim()) {
     ElMessage.warning('请输入收货地址')
     return
   }
   
   // 检查积分是否足够
-  const totalPoints = currentProduct.value.points * exchangeForm.quantity
-  if (totalPoints > pointsBalance.value) {
+  const totalPoints = selectedProduct.value.score * exchangeForm.quantity
+  if (totalPoints > userPoints.value) {
     ElMessage.error('积分不足，无法兑换')
     return
   }
   
-  // 确认对话框
+  // 构建订单数据，符合后端接收对象要求
+  const orderData = {
+    productId: exchangeForm.productId,
+    username: exchangeForm.username,
+    phone: exchangeForm.phone,
+    address: exchangeForm.address,
+    payScore: totalPoints,
+    count: exchangeForm.quantity
+  }
+  
+  // 显示确认对话框
   ElMessageBox.confirm(
-    `确定要兑换 ${exchangeForm.quantity} 件 ${currentProduct.value.name} 吗？将消耗 ${totalPoints} 积分。`,
+    `确认兑换 ${selectedProduct.value.name} ${exchangeForm.quantity} 件？将消耗 ${totalPoints} 积分`,
     '确认兑换',
     {
-      confirmButtonText: '确定',
+      confirmButtonText: '确认',
       cancelButtonText: '取消',
       type: 'warning',
     }
   ).then(() => {
-    // 构建订单数据
-    const orderData = {
-      productId: exchangeForm.productId,
-      quantity: exchangeForm.quantity,
-      receiverName: exchangeForm.username,
-      receiverPhone: exchangeForm.phone,
-      receiverAddress: exchangeForm.address
-    }
-    
     // 调用API创建订单
     createPointsOrder(orderData, (data) => {
       ElMessage.success('兑换成功！订单已生成')
-      closeExchangeDialog()
+      dialogVisible.value = false
       loadProducts()
       loadUserPoints()
     }, (message) => {
@@ -273,6 +331,7 @@ const confirmExchange = () => {
     })
   }).catch(() => {
     // 用户取消操作
+    ElMessage.info('已取消兑换')
   })
 }
 
@@ -511,5 +570,20 @@ onMounted(() => {
   justify-content: flex-end;
   gap: 10px;
 }
+
+.form-tip {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 5px;
+  
+  .dark & {
+    color: #a0a0a0;
+  }
+}
 </style>
+
+
+
+
+
 
