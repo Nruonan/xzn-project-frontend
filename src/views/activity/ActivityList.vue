@@ -2,8 +2,8 @@
   <div class="activity-container">
     <!-- 页面标题 -->
     <div class="page-header">
-      <h1>校园活动</h1>
-      <p class="page-desc">发现精彩校园活动，丰富你的校园生活</p>
+      <h1>社区活动</h1>
+      <p class="page-desc">发现精彩社区活动，丰富你的社区生活</p>
     </div>
 
     <!-- 搜索栏 -->

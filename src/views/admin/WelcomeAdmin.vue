@@ -104,7 +104,7 @@ onMounted(() => {
     <div class="welcome-header">
       <div class="welcome-text">
         <h1>欢迎回来，管理员</h1>
-        <p>今天是管理校园平台的好日子，让我们一起维护这个美好的社区</p>
+        <p>今天是管理码农社区平台的好日子，让我们一起维护这个美好的社区</p>
       </div>
       <div class="admin-info">
         <el-avatar :size="60" :src="store.avatarUserUrl(store.user.avatar)" />

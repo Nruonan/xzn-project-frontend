@@ -114,8 +114,9 @@ import {
   Reading,
   Search,
   Money,
-  Check, Files, Document, Position, Monitor, Collection, DataLine, House
+  Check, Files, Document, Position, Monitor, Collection, DataLine, House,MessageBox
 } from '@element-plus/icons-vue'
+
 import { useDark } from '@vueuse/core'
 import {get} from "../net/index.js";
 import {useStore} from "../store/index.js";
@@ -139,16 +140,16 @@ let userMenu = [
     title: '技术社区', icon: Location, sub: [
       { title: '帖子广场', icon: ChatDotSquare, index: '/index' },
       { title: '热门帖子', icon: Collection, index: '/index/hot' },
-      { title: '草稿箱', icon: Document, index: '/index/drafts' },
+      { title: '草稿箱', icon: Message, index: '/index/drafts' },
       
-      { title: '校园公告', icon: Document, index: '/index/notice' },
+      { title: '社区公告', icon: Document, index: '/index/notice' },
       { title: '消息通知', icon: Bell, index: '/index/notification' },
-      { title: '校园活动', icon: Notification, index: '/index/activity'},
+      { title: '社区活动', icon: Notification, index: '/index/activity'},
     ]
   }, {
     title: '积分商城', icon: Money, sub: [
       { title: '积分兑换', icon: Goods, index: '/index/points-exchange' },
-      { title: '积分明细', icon: Document, index: '/index/points-detail' },
+      { title: '积分明细', icon: MessageBox, index: '/index/points-detail' },
       { title: '积分订单', icon: Files, index: '/index/points-order' }
     ]
   }, {

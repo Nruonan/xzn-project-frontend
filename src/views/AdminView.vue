@@ -7,7 +7,7 @@ import {
   Monitor,
   Notification,
   Operation, Position, ToiletPaper,
-  User
+  User,MessageBox
 } from "@element-plus/icons-vue";
 import UserInfo from "@/components/UserInfo.vue";
 import {get} from "@/net/index.js";
@@ -32,7 +32,7 @@ const adminMenu = [
   },
   {
     title: '积分商城管理', icon: Money, sub:[
-      {title: '积分日志管理', icon: Document, index: '/admin/point-log'},
+      {title: '积分日志管理', icon: MessageBox, index: '/admin/point-log'},
       {title: '积分规则管理', icon: Operation, index: '/admin/point-rule'},
       {title: '积分商品管理', icon: Money, index: '/admin/point-product'},
       {title: '积分订单管理', icon: Files, index: '/admin/point-order'},
