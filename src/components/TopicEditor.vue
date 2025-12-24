@@ -160,47 +160,47 @@ const editorOption = {
     imageResize: {
       modules: ['Resize','DisplaySize']
     },
-  ImageExtend: {
-  action: axios.defaults.baseURL + '/api/image/cache',
-  name: 'file',
-  size: 5,
-  loading: true,
-  accept: 'image/png, image/jpeg',
-  methods: 'POST',
-  headers: xhr => {
-    const auth = accessHeader().Authorization;
-    if(auth) xhr.setRequestHeader('Authorization', auth);
-  },
-  
-  // 【关键修改 1】：在 response 里判断业务逻辑 (code == 200)
-  response: (res) => {
-    // res 是后端返回的完整 JSON 对象
-    if (res.code === 200 && res.data) {
-        // 只有 code 为 200 且有数据时，才算真正成功
-        ElMessage.success('图片上传成功!')
-        return axios.defaults.baseURL + '/images' + res.data
-    } else {
-        // 如果是 400 或其他错误，在这里弹出后端返回的 message
-        ElMessage.warning(res.message || '上传失败，请检查图片')
-        // 返回 null，插件就不会把图片插入编辑器
-        return null 
-    }
-  },
+    ImageExtend: {
+      action: axios.defaults.baseURL + '/api/image/cache',
+      name: 'file',
+      size: 5,
+      loading: true,
+      accept: 'image/png, image/jpeg',
+      methods: 'POST',
+      headers: xhr => {
+        const auth = accessHeader().Authorization;
+        if(auth) xhr.setRequestHeader('Authorization', auth);
+      },
 
-  // 【关键修改 2】：success 只负责关闭 loading，不负责弹窗
-  start: () => editor.uploading = true,
-  success: () => {
-    // 即使后端返回 code 400，只要 HTTP 状态码是 200，这里也会走
-    // 所以这里不要弹“成功”提示，只做清理工作
-    editor.uploading = false
-  },
-  
-  // 这里处理网络错误（如 404, 500, 断网等）
-  error: () => {
-    ElMessage.error('网络连接失败或服务器异常')
-    editor.uploading = false
-  }
-}
+      // 【关键修改 1】：在 response 里判断业务逻辑 (code == 200)
+      response: (res) => {
+        // res 是后端返回的完整 JSON 对象
+        if (res.code === 200 && res.data) {
+          // 只有 code 为 200 且有数据时，才算真正成功
+          ElMessage.success('图片上传成功!')
+          return axios.defaults.baseURL + '/images' + res.data
+        } else {
+          // 如果是 400 或其他错误，在这里弹出后端返回的 message
+          ElMessage.warning(res.message || '上传失败，请检查图片')
+          // 返回 null，插件就不会把图片插入编辑器
+          return null
+        }
+      },
+
+      // 【关键修改 2】：success 只负责关闭 loading，不负责弹窗
+      start: () => editor.uploading = true,
+      success: () => {
+        // 即使后端返回 code 400，只要 HTTP 状态码是 200，这里也会走
+        // 所以这里不要弹“成功”提示，只做清理工作
+        editor.uploading = false
+      },
+
+      // 这里处理网络错误（如 404, 500, 断网等）
+      error: () => {
+        ElMessage.error('网络连接失败或服务器异常')
+        editor.uploading = false
+      }
+    }
   }
 }
 </script>
